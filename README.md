@@ -11,6 +11,8 @@ Input rows are JSON objects with a source document in the `text` key:
 ## Install
 
 ```bash
+git clone https://github.com/RenkunNi/SynthCPT.git
+cd SynthCPT
 python -m pip install -e .
 ```
 
