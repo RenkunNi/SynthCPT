@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "entigraph-pipeline"
+version = "0.1.0"
+description = "EntiGraph-style synthetic continued-pretraining data generation for JSONL corpora."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "synth_cpt"}]
+dependencies = []
+
+[project.scripts]
+entigraph = "entigraph_pipeline.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["entigraph_pipeline*"]

@@ -1,0 +1,71 @@
+{
+  "failed": 0,
+  "generated_path": "examples/generated/wiki_synth_offline_sample.jsonl",
+  "input_path": "examples/wiki_fixture.jsonl",
+  "output_dir": "evaluate",
+  "pass_rate": 1.0,
+  "passed": 16,
+  "rows": 16,
+  "rows_by_mode": {
+    "cross_doc": 4,
+    "single_doc": 12
+  },
+  "score_summary": {
+    "length": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
+    "overall": {
+      "max": 0.9984,
+      "mean": 0.9392,
+      "min": 0.9231
+    },
+    "redundancy_score": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
+    "relation_signal": {
+      "max": 1.0,
+      "mean": 0.6906,
+      "min": 0.55
+    },
+    "selected_entity_mention": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
+    "selected_entity_support": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
+    "source_5gram_overlap": {
+      "max": 0.0,
+      "mean": 0.0,
+      "min": 0.0
+    },
+    "specificity": {
+      "max": 1.0,
+      "mean": 0.9186,
+      "min": 0.3556
+    },
+    "structure": {
+      "max": 1.0,
+      "mean": 0.6563,
+      "min": 0.5417
+    },
+    "unsupported_proper_noun_score": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    }
+  },
+  "thresholds": {
+    "max_redundancy_overlap": 0.65,
+    "max_unsupported_proper_nouns": 2,
+    "min_overall_score": 0.75
+  },
+  "warning_counts": {}
+}
