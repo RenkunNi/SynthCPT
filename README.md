@@ -107,16 +107,39 @@ Useful controls:
 
 Use `--mode all` to generate single-document, cross-document, and SoG-lite rows into the same output JSONL.
 
-### 6. Write Synthetic JSONL
+### 6. Generate LongFaith-style QA
+
+In `longfaith-qa` mode, the pipeline reuses SoG-lite graph paths as cited support contexts. It asks the LLM to generate one question, answer, and cited reasoning chain grounded in the supplied chunks.
+
+This produces instruction-style long-context data rather than plain CPT prose. Each row includes:
+
+- `context`: cited source chunks
+- `question`
+- `answer`
+- `reasoning`
+- `support_ids`
+- `text`: a combined context/question/answer/reasoning field for evaluation or training
+
+Useful controls are shared with SoG-lite:
+
+- `--mode longfaith-qa`
+- `--sog-path-length 3`
+- `--sog-max-paths 1000`
+- `--sog-max-section-chars 1800`
+
+Use `--mode all` to generate single-document, cross-document, SoG-lite, and LongFaith-style QA rows.
+
+### 7. Write Synthetic JSONL
 
 Generated rows are appended to `--output`. Resume is automatic:
 
 - single-document rows resume by `relation_id`
 - cross-document rows resume by `graph_id`
 - SoG-lite rows resume by `path_id`
+- LongFaith-style QA rows resume by `qa_id`
 - rows containing `error` are retried
 
-### 7. Evaluate Before Training
+### 8. Evaluate Before Training
 
 The `evaluate` command scores generated rows before any model training. It writes all scores under `evaluate/` by default:
 
@@ -289,6 +312,7 @@ Evaluation row:
 - Use `single-doc` for the paper-faithful EntiGraph baseline.
 - Use `cross-doc` separately when you want broader document-level graph synthesis.
 - Use `sog-lite` when you want long-context graph-path synthesis from section-level chunks.
+- Use `longfaith-qa` when you want cited long-context instruction data instead of CPT prose.
 - The pair/triple space grows quickly: all pairs are `O(n^2)`, triples are `O(n^3)`.
 - To mirror the paper's practical setup, run all pairs plus sampled triplets.
 - Keep source text in prompts to reduce hallucination.

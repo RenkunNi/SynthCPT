@@ -48,6 +48,16 @@ class OfflineWikiClient:
                 "### Integrated synthesis\n"
                 "Together, the pages describe how mechanical calculation, programmable control, and interpretive notes formed a connected historical graph."
             )
+        if "faithful long-context qa" in system.lower():
+            entities = parse_bullet_block(user, "Path entities:")
+            return json.dumps(
+                {
+                    "question": f"How do {entities[0]} and {entities[1]} connect across the cited chunks?",
+                    "answer": f"{entities[0]} and {entities[1]} are connected through the supplied early-computing context.",
+                    "reasoning": f"According to [1], {entities[0]} appears in the graph path. According to [2], {entities[1]} provides a related chunk in the same path.",
+                    "support_ids": ["1", "2"],
+                }
+            )
         if "graph-path" in system.lower():
             entities = parse_bullet_block(user, "Path entities:")
             return (
@@ -72,7 +82,7 @@ def main() -> int:
     parser.add_argument("--fixture", type=Path, default=DEFAULT_FIXTURE)
     parser.add_argument("--output", type=Path, default=Path("/tmp/wiki_synth_offline.jsonl"))
     parser.add_argument("--entity-cache", type=Path, default=Path("/tmp/wiki_entities_offline.jsonl"))
-    parser.add_argument("--mode", choices=["single-doc", "cross-doc", "sog-lite", "both", "all"], default="all")
+    parser.add_argument("--mode", choices=["single-doc", "cross-doc", "sog-lite", "longfaith-qa", "both", "all"], default="all")
     parser.add_argument("--combo-sizes", default="2")
     parser.add_argument("--max-combos-per-doc", type=int, default=2)
     parser.add_argument("--cross-doc-max-pairs", type=int, default=4)

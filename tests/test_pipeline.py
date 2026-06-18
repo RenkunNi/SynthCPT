@@ -35,6 +35,15 @@ class FakeClient:
         if "Shared entities:" in user:
             return "Cross-document synthetic text\n" + user.split("Shared entities:", 1)[1].strip()
         if "Path entities:" in user:
+            if "faithful long-context qa" in messages[0]["content"].lower():
+                return json.dumps(
+                    {
+                        "question": "How are Ada Lovelace and the Analytical Engine connected?",
+                        "answer": "Ada Lovelace is connected to the Analytical Engine through the cited source chunks.",
+                        "reasoning": "According to [1], Ada Lovelace appears in the path. According to [2], the Analytical Engine appears in a connected chunk.",
+                        "support_ids": ["1", "2"],
+                    }
+                )
             return "SoG-lite synthetic text\n" + user.split("Path entities:", 1)[1].strip()
         return "Synthetic relation text\n" + user.split("Entities:", 1)[1].strip()
 
@@ -209,6 +218,43 @@ class PipelineTest(unittest.TestCase):
             self.assertEqual(output_rows[0]["generation_mode"], "sog_lite")
             self.assertEqual(output_rows[0]["task_type"], "graph_path_synthesis")
             self.assertIn("path_id", output_rows[0])
+
+    def test_longfaith_qa_mode_generates_cited_qa(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input.jsonl"
+            output_path = root / "out.jsonl"
+            entity_path = root / "entities.jsonl"
+            rows = [
+                {
+                    "id": "ada",
+                    "title": "Ada Lovelace",
+                    "text": "Ada Lovelace wrote notes about the Analytical Engine with Charles Babbage.",
+                },
+                {
+                    "id": "babbage",
+                    "title": "Charles Babbage",
+                    "text": "Charles Babbage designed the Difference Engine and the Analytical Engine.",
+                },
+            ]
+            input_path.write_text("".join(json.dumps(row) + "\n" for row in rows))
+            config = EntiGraphConfig(
+                input_path=input_path,
+                output_path=output_path,
+                entity_cache_path=entity_path,
+                mode="longfaith-qa",
+                sog_path_length=2,
+                sog_max_paths=1,
+                max_workers=2,
+                show_progress=False,
+            )
+            stats = EntiGraphPipeline(config, FakeClient()).run()
+            self.assertEqual(stats["longfaith_qa_generated"], 1)
+            output_rows = [json.loads(line) for line in output_path.read_text().splitlines()]
+            self.assertEqual(output_rows[0]["generation_mode"], "longfaith_qa")
+            self.assertEqual(output_rows[0]["task_type"], "cited_long_context_qa")
+            self.assertIn("question", output_rows[0])
+            self.assertIn("[1]", output_rows[0]["reasoning"])
 
     def test_failed_output_rows_are_retried_on_resume(self):
         with tempfile.TemporaryDirectory() as tmp:

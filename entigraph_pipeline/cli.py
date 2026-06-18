@@ -46,9 +46,9 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--json-mode", action="store_true", help="Ask API for JSON objects during entity extraction.")
     generate.add_argument(
         "--mode",
-        choices=["single-doc", "cross-doc", "sog-lite", "both", "all"],
+        choices=["single-doc", "cross-doc", "sog-lite", "longfaith-qa", "both", "all"],
         default="single-doc",
-        help="Generate single-doc, cross-doc, SoG-lite graph paths, both single/cross, or all modes.",
+        help="Generate single-doc, cross-doc, SoG-lite graph paths, LongFaith-style QA, both single/cross, or all modes.",
     )
     generate.add_argument("--combo-sizes", default="2,3", help="Comma-separated entity combination sizes.")
     generate.add_argument("--max-docs", type=int, default=None)
@@ -144,7 +144,14 @@ def run_generate(args: argparse.Namespace) -> int:
     client = OpenAICompatibleClient(llm_config)
     stats = EntiGraphPipeline(pipeline_config, client).run()
     print(json.dumps(stats, indent=2, sort_keys=True))
-    return 0 if stats["relations_failed"] == 0 and stats["cross_doc_failed"] == 0 and stats["sog_lite_failed"] == 0 else 1
+    return (
+        0
+        if stats["relations_failed"] == 0
+        and stats["cross_doc_failed"] == 0
+        and stats["sog_lite_failed"] == 0
+        and stats["longfaith_qa_failed"] == 0
+        else 1
+    )
 
 
 def run_evaluate(args: argparse.Namespace) -> int:
