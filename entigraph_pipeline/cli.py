@@ -67,6 +67,7 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--relation-max-tokens", type=int, default=2048)
     generate.add_argument("--no-resume", action="store_true")
     generate.add_argument("--include-source-text", action="store_true")
+    generate.add_argument("--no-progress", action="store_true", help="Disable interactive progress bars.")
     evaluate = subparsers.add_parser("evaluate", help="Evaluate generated EntiGraph JSONL before training.")
     evaluate.add_argument("--input", required=True, type=Path, help="Original source JSONL.")
     evaluate.add_argument("--generated", required=True, type=Path, help="Generated synthetic JSONL.")
@@ -119,6 +120,7 @@ def run_generate(args: argparse.Namespace) -> int:
         json_mode=args.json_mode,
         resume=not args.no_resume,
         include_source_text=args.include_source_text,
+        show_progress=not args.no_progress,
         metadata={
             "provider": args.provider,
             "model": args.model,
@@ -128,7 +130,7 @@ def run_generate(args: argparse.Namespace) -> int:
     client = OpenAICompatibleClient(llm_config)
     stats = EntiGraphPipeline(pipeline_config, client).run()
     print(json.dumps(stats, indent=2, sort_keys=True))
-    return 0 if stats["relations_failed"] == 0 else 1
+    return 0 if stats["relations_failed"] == 0 and stats["cross_doc_failed"] == 0 else 1
 
 
 def run_evaluate(args: argparse.Namespace) -> int:

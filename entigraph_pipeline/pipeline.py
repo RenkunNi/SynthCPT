@@ -6,6 +6,7 @@ import concurrent.futures
 import hashlib
 import itertools
 import json
+import math
 import random
 import re
 import threading
@@ -15,6 +16,7 @@ from typing import Any, Callable, Iterable, Protocol
 
 from .io import append_jsonl, read_completed_keys, read_jsonl
 from .llm import OpenAICompatibleClient
+from .progress import ProgressBar
 from .prompts import (
     CROSS_DOCUMENT_SYSTEM_PROMPT,
     ENTITY_SYSTEM_PROMPT,
@@ -66,6 +68,7 @@ class EntiGraphConfig:
     resume: bool = True
     max_in_flight: int | None = None
     include_source_text: bool = False
+    show_progress: bool = True
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -134,20 +137,24 @@ class EntiGraphPipeline:
         relation_stats = empty_generation_stats("relations")
         cross_doc_stats = empty_generation_stats("cross_doc")
         if self.config.mode in {"single-doc", "both"}:
+            relation_total = self.count_relation_tasks(docs, entity_records) if self.config.show_progress else None
             relation_stats = self._run_generation_tasks(
                 self.iter_relation_tasks(docs, entity_records),
                 completed_key="relation_id",
                 task_key=lambda task: task.relation_id,
                 generate=lambda task: self.generate_relation(task),
                 prefix="relations",
+                total=relation_total,
             )
         if self.config.mode in {"cross-doc", "both"}:
+            cross_doc_total = self.count_cross_document_tasks(docs, entity_records) if self.config.show_progress else None
             cross_doc_stats = self._run_generation_tasks(
                 self.iter_cross_document_tasks(docs, entity_records),
                 completed_key="graph_id",
                 task_key=lambda task: task.graph_id,
                 generate=lambda task: self.generate_cross_document(task),
                 prefix="cross_doc",
+                total=cross_doc_total,
             )
         return {
             "documents": len(docs),
@@ -165,14 +172,38 @@ class EntiGraphPipeline:
         task_key: Callable[[Any], str],
         generate: Callable[[Any], dict[str, Any]],
         prefix: str,
+        total: int | None = None,
+    ) -> dict[str, int]:
+        completed = read_completed_keys(self.config.output_path, completed_key) if self.config.resume else set()
+        max_in_flight = self.config.max_in_flight or max(1, self.config.max_workers * 4)
+        label = "generate cross-doc" if prefix == "cross_doc" else "generate relations"
+        with ProgressBar(label, total, enabled=self.config.show_progress) as progress:
+            stats = self._run_generation_tasks_with_progress(
+                tasks,
+                completed,
+                task_key,
+                generate,
+                prefix,
+                progress,
+                max_in_flight,
+            )
+        return stats
+
+    def _run_generation_tasks_with_progress(
+        self,
+        tasks: Iterable[Any],
+        completed: set[str],
+        task_key: Callable[[Any], str],
+        generate: Callable[[Any], dict[str, Any]],
+        prefix: str,
+        progress: ProgressBar,
+        max_in_flight: int,
     ) -> dict[str, int]:
         skipped = 0
         considered = 0
         submitted = 0
-        completed = read_completed_keys(self.config.output_path, completed_key) if self.config.resume else set()
         generated = 0
         failed = 0
-        max_in_flight = self.config.max_in_flight or max(1, self.config.max_workers * 4)
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.config.max_workers) as pool:
             pending: set[concurrent.futures.Future[dict[str, Any]]] = set()
 
@@ -188,11 +219,13 @@ class EntiGraphPipeline:
                         generated += 1
                     with self._output_lock:
                         append_jsonl(self.config.output_path, [row])
+                    progress.update()
 
             for task in tasks:
                 considered += 1
                 if task_key(task) in completed:
                     skipped += 1
+                    progress.update()
                     continue
                 while len(pending) >= max_in_flight:
                     drain_one()
@@ -242,26 +275,28 @@ class EntiGraphPipeline:
         if not missing:
             return records
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.config.max_workers) as pool:
-            futures = {pool.submit(self.extract_entities, doc): doc for doc in missing}
-            for future in concurrent.futures.as_completed(futures):
-                doc = futures[future]
-                try:
-                    record = future.result()
-                except Exception as exc:
-                    record = EntityRecord(
-                        doc_id=doc.doc_id,
-                        source_index=doc.source_index,
-                        title=doc.title,
-                        source_sha256=doc.source_sha256,
-                        summary="",
-                        entities=(),
-                        raw_response="",
-                        error=str(exc),
-                    )
-                records[record.doc_id] = record
-                with self._entity_lock:
-                    append_jsonl(self.config.entity_cache_path, [entity_record_to_row(record)])
+        with ProgressBar("extract entities", len(missing), enabled=self.config.show_progress) as progress:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=self.config.max_workers) as pool:
+                futures = {pool.submit(self.extract_entities, doc): doc for doc in missing}
+                for future in concurrent.futures.as_completed(futures):
+                    doc = futures[future]
+                    try:
+                        record = future.result()
+                    except Exception as exc:
+                        record = EntityRecord(
+                            doc_id=doc.doc_id,
+                            source_index=doc.source_index,
+                            title=doc.title,
+                            source_sha256=doc.source_sha256,
+                            summary="",
+                            entities=(),
+                            raw_response="",
+                            error=str(exc),
+                        )
+                    records[record.doc_id] = record
+                    with self._entity_lock:
+                        append_jsonl(self.config.entity_cache_path, [entity_record_to_row(record)])
+                    progress.update()
         return records
 
     def extract_entities(self, doc: SourceDocument) -> EntityRecord:
@@ -334,6 +369,26 @@ class EntiGraphPipeline:
             for combo in combo_iter:
                 yield RelationTask(doc=doc, entities=combo)
 
+    def count_relation_tasks(
+        self,
+        docs: list[SourceDocument],
+        entity_records: dict[str, EntityRecord],
+    ) -> int:
+        total = 0
+        for doc in docs:
+            record = entity_records.get(doc.doc_id)
+            if record is None:
+                continue
+            count = 0
+            for size in self.config.combo_sizes:
+                if size <= 0 or len(record.entities) < size:
+                    continue
+                count += math.comb(len(record.entities), size)
+            if self.config.max_combos_per_doc is not None:
+                count = min(count, self.config.max_combos_per_doc)
+            total += count
+        return total
+
     def iter_cross_document_tasks(
         self,
         docs: list[SourceDocument],
@@ -383,6 +438,13 @@ class EntiGraphPipeline:
             yield from reservoir_sample(tasks, self.config.cross_doc_max_pairs, rng)
         else:
             yield from itertools.islice(tasks, self.config.cross_doc_max_pairs)
+
+    def count_cross_document_tasks(
+        self,
+        docs: list[SourceDocument],
+        entity_records: dict[str, EntityRecord],
+    ) -> int:
+        return sum(1 for _ in self.iter_cross_document_tasks(docs, entity_records))
 
     def generate_relation(self, task: RelationTask) -> dict[str, Any]:
         system_prompt = relation_system_prompt(len(task.entities))

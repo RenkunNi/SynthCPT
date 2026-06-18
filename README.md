@@ -62,6 +62,7 @@ Useful controls:
 - `--max-entities 60`
 - `--max-combos-per-doc 5000`
 - `--sample-combos`
+- `--no-progress`
 
 ### 4. Build Cross-Document Graph Tasks
 
@@ -121,6 +122,8 @@ entigraph generate \
 ```
 
 The default local API key is `EMPTY`, matching common vLLM setups. Set `VLLM_API_KEY` or pass `--api-key` if your server requires one.
+
+Interactive runs show progress bars for entity extraction, single-document relation generation, and cross-document generation. Add `--no-progress` for quiet batch jobs or logs.
 
 ## Run With Hosted OpenAI API
 
