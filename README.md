@@ -60,9 +60,17 @@ Useful controls:
 
 - `--combo-sizes 2,3`
 - `--max-entities 60`
+- `--entity-selection-strategy hybrid`
 - `--max-combos-per-doc 5000`
 - `--sample-combos`
 - `--no-progress`
+
+When extraction returns many entities, `--max-entities` limits the selected entities used for graph generation. The cache still stores the full extracted list, so you can rerun with a different selection strategy without extracting entities again:
+
+- `llm-order`: keep the LLM's extracted order. This is the default and closest to the paper prompt.
+- `importance`: prefer entities mentioned frequently and early in the source document.
+- `rarity`: prefer entities that appear in fewer documents across the corpus.
+- `hybrid`: combine document importance with corpus rarity.
 
 ### 4. Build Cross-Document Graph Tasks
 
@@ -115,6 +123,7 @@ entigraph generate \
   --max-workers 8 \
   --max-in-flight 32 \
   --max-entities 60 \
+  --entity-selection-strategy hybrid \
   --combo-sizes 2,3 \
   --max-combos-per-doc 5000 \
   --sample-combos \
@@ -140,6 +149,7 @@ entigraph generate \
   --mode both \
   --max-workers 4 \
   --max-entities 60 \
+  --entity-selection-strategy hybrid \
   --combo-sizes 2,3 \
   --max-combos-per-doc 5000 \
   --sample-combos

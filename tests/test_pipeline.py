@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from entigraph_pipeline.entity_selection import select_entities
 from entigraph_pipeline.evaluator import EntiGraphEvaluator, EvaluationConfig
 from entigraph_pipeline.pipeline import (
     EntiGraphConfig,
@@ -41,8 +42,30 @@ class PipelineTest(unittest.TestCase):
         self.assertEqual(parsed["entities"], ["A"])
 
     def test_normalize_entities_dedupes(self):
-        values = normalize_entities([" Alpha ", "alpha", "B", "Gamma"], max_entities=10, min_chars=2)
+        values = normalize_entities([" Alpha ", "alpha", "B", "Gamma"], min_chars=2)
         self.assertEqual(values, ["Alpha", "Gamma"])
+
+    def test_importance_entity_selection_prefers_mentions(self):
+        selected = select_entities(
+            ("Rare Name", "Alpha", "Beta"),
+            "Alpha appears several times. Alpha connects to Beta. Alpha matters here.",
+            doc_frequency={},
+            total_docs=1,
+            strategy="importance",
+            max_entities=1,
+        )
+        self.assertEqual(selected, ("Alpha",))
+
+    def test_rarity_entity_selection_prefers_corpus_rare_terms(self):
+        selected = select_entities(
+            ("Common", "Rare"),
+            "Common and Rare are both mentioned.",
+            doc_frequency={"common": 10, "rare": 1},
+            total_docs=10,
+            strategy="rarity",
+            max_entities=1,
+        )
+        self.assertEqual(selected, ("Rare",))
 
     def test_title_fallback_uses_source_text(self):
         title = infer_title_from_text("# Ada Lovelace and the Analytical Engine\nMore text.", 0)

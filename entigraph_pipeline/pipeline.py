@@ -10,10 +10,11 @@ import math
 import random
 import re
 import threading
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Callable, Iterable, Protocol
 
+from .entity_selection import select_entities_for_records
 from .io import append_jsonl, read_completed_keys, read_jsonl
 from .llm import OpenAICompatibleClient
 from .progress import ProgressBar
@@ -52,6 +53,7 @@ class EntiGraphConfig:
     mode: str = "single-doc"
     max_docs: int | None = None
     max_entities: int = 60
+    entity_selection_strategy: str = "llm-order"
     min_entity_chars: int = 2
     max_combos_per_doc: int | None = None
     sample_combos: bool = False
@@ -135,6 +137,7 @@ class EntiGraphPipeline:
             raise ValueError("mode must be one of: single-doc, cross-doc, both")
         docs = list(self.iter_documents())
         entity_records = self.ensure_entities(docs)
+        entity_records, entity_selection_stats = self.select_entity_records(docs, entity_records)
         relation_stats = empty_generation_stats("relations")
         cross_doc_stats = empty_generation_stats("cross_doc")
         if self.config.mode in {"single-doc", "both"}:
@@ -161,6 +164,8 @@ class EntiGraphPipeline:
             "documents": len(docs),
             "entity_records": len(entity_records),
             "entity_errors": sum(1 for record in entity_records.values() if record.error),
+            "entities_extracted": entity_selection_stats.extracted_total,
+            "entities_selected": entity_selection_stats.selected_total,
             **relation_stats,
             **cross_doc_stats,
         }
@@ -331,7 +336,6 @@ class EntiGraphPipeline:
             parsed = parse_entity_response(raw_response)
         entities = normalize_entities(
             parsed.get("entities", []),
-            max_entities=self.config.max_entities,
             min_chars=self.config.min_entity_chars,
         )
         return EntityRecord(
@@ -343,6 +347,24 @@ class EntiGraphPipeline:
             entities=tuple(entities),
             raw_response=raw_response,
         )
+
+    def select_entity_records(
+        self,
+        docs: list[SourceDocument],
+        entity_records: dict[str, EntityRecord],
+    ) -> tuple[dict[str, EntityRecord], Any]:
+        docs_by_id = {doc.doc_id: doc for doc in docs}
+        selected_by_doc, stats = select_entities_for_records(
+            entity_records,
+            docs_by_id,
+            strategy=self.config.entity_selection_strategy,
+            max_entities=self.config.max_entities,
+        )
+        selected_records = {
+            doc_id: replace(record, entities=selected_by_doc.get(doc_id, record.entities))
+            for doc_id, record in entity_records.items()
+        }
+        return selected_records, stats
 
     def iter_relation_tasks(
         self,
@@ -595,7 +617,7 @@ def parse_entity_response(raw_response: str) -> dict[str, Any]:
     raise ValueError(f"Could not parse entity extraction JSON: {raw_response[:500]}")
 
 
-def normalize_entities(values: Any, *, max_entities: int, min_chars: int) -> list[str]:
+def normalize_entities(values: Any, *, min_chars: int) -> list[str]:
     if not isinstance(values, list):
         return []
     normalized: list[str] = []
@@ -611,8 +633,6 @@ def normalize_entities(values: Any, *, max_entities: int, min_chars: int) -> lis
             continue
         seen.add(key)
         normalized.append(entity)
-        if len(normalized) >= max_entities:
-            break
     return normalized
 
 

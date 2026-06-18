@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
+from .entity_selection import ENTITY_SELECTION_STRATEGIES
 from .evaluator import EntiGraphEvaluator, EvaluationConfig
 from .llm import LLMConfig, OpenAICompatibleClient
 from .pipeline import EntiGraphConfig, EntiGraphPipeline
@@ -52,6 +53,12 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--combo-sizes", default="2,3", help="Comma-separated entity combination sizes.")
     generate.add_argument("--max-docs", type=int, default=None)
     generate.add_argument("--max-entities", type=int, default=60)
+    generate.add_argument(
+        "--entity-selection-strategy",
+        choices=sorted(ENTITY_SELECTION_STRATEGIES),
+        default="llm-order",
+        help="How to choose entities when extraction returns more than max_entities.",
+    )
     generate.add_argument("--max-combos-per-doc", type=int, default=None)
     generate.add_argument("--sample-combos", action="store_true")
     generate.add_argument("--cross-doc-min-shared-entities", type=int, default=1)
@@ -104,6 +111,7 @@ def run_generate(args: argparse.Namespace) -> int:
         mode=args.mode,
         max_docs=args.max_docs,
         max_entities=args.max_entities,
+        entity_selection_strategy=args.entity_selection_strategy,
         max_combos_per_doc=args.max_combos_per_doc,
         sample_combos=args.sample_combos,
         cross_doc_min_shared_entities=args.cross_doc_min_shared_entities,
