@@ -284,6 +284,8 @@ def relation_signal_score(text: str, entities: list[str]) -> float:
 
 
 def generation_mode(row: dict[str, Any]) -> str:
+    if row.get("generation_mode") == "longfaith_qa" or "qa_id" in row:
+        return "longfaith_qa"
     if row.get("generation_mode") == "sog_lite" or "path_id" in row:
         return "sog_lite"
     if row.get("generation_mode") == "cross_doc" or "graph_id" in row:

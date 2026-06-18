@@ -23,8 +23,10 @@ from .prompts import (
     CROSS_DOCUMENT_SYSTEM_PROMPT,
     ENTITY_SYSTEM_PROMPT,
     SOG_LITE_SYSTEM_PROMPT,
+    LONGFAITH_QA_SYSTEM_PROMPT,
     cross_document_user_prompt,
     document_user_prompt,
+    longfaith_qa_user_prompt,
     relation_system_prompt,
     relation_user_prompt,
     sog_lite_user_prompt,
@@ -150,14 +152,15 @@ class EntiGraphPipeline:
         self._output_lock = threading.Lock()
 
     def run(self) -> dict[str, int]:
-        if self.config.mode not in {"single-doc", "cross-doc", "sog-lite", "both", "all"}:
-            raise ValueError("mode must be one of: single-doc, cross-doc, sog-lite, both, all")
+        if self.config.mode not in {"single-doc", "cross-doc", "sog-lite", "longfaith-qa", "both", "all"}:
+            raise ValueError("mode must be one of: single-doc, cross-doc, sog-lite, longfaith-qa, both, all")
         docs = list(self.iter_documents())
         entity_records = self.ensure_entities(docs)
         entity_records, entity_selection_stats = self.select_entity_records(docs, entity_records)
         relation_stats = empty_generation_stats("relations")
         cross_doc_stats = empty_generation_stats("cross_doc")
         sog_lite_stats = empty_generation_stats("sog_lite")
+        longfaith_stats = empty_generation_stats("longfaith_qa")
         if self.config.mode in {"single-doc", "both", "all"}:
             relation_total = self.count_relation_tasks(docs, entity_records) if self.config.show_progress else None
             relation_stats = self._run_generation_tasks(
@@ -188,6 +191,16 @@ class EntiGraphPipeline:
                 prefix="sog_lite",
                 total=sog_lite_total,
             )
+        if self.config.mode in {"longfaith-qa", "all"}:
+            longfaith_total = self.count_sog_lite_tasks(docs, entity_records) if self.config.show_progress else None
+            longfaith_stats = self._run_generation_tasks(
+                self.iter_sog_lite_tasks(docs, entity_records),
+                completed_key="qa_id",
+                task_key=lambda task: stable_id("longfaith-qa", task.path_id),
+                generate=lambda task: self.generate_longfaith_qa(task),
+                prefix="longfaith_qa",
+                total=longfaith_total,
+            )
         return {
             "documents": len(docs),
             "entity_records": len(entity_records),
@@ -197,6 +210,7 @@ class EntiGraphPipeline:
             **relation_stats,
             **cross_doc_stats,
             **sog_lite_stats,
+            **longfaith_stats,
         }
 
     def _run_generation_tasks(
@@ -214,6 +228,7 @@ class EntiGraphPipeline:
         labels = {
             "cross_doc": "generate cross-doc",
             "sog_lite": "generate SoG-lite",
+            "longfaith_qa": "generate LongFaith QA",
         }
         label = labels.get(prefix, "generate relations")
         with ProgressBar(label, total, enabled=self.config.show_progress) as progress:
@@ -645,6 +660,66 @@ class EntiGraphPipeline:
         except Exception as exc:
             return {**base, "text": "", "error": str(exc)}
 
+    def generate_longfaith_qa(self, task: SogLitePathTask) -> dict[str, Any]:
+        chunks = tuple(
+            {
+                "section_id": node.section_id,
+                "doc_id": node.doc_id,
+                "doc_title": node.doc_title,
+                "section_title": node.section_title,
+                "text": node.text,
+            }
+            for node in task.path
+        )
+        messages = [
+            {"role": "system", "content": LONGFAITH_QA_SYSTEM_PROMPT},
+            {"role": "user", "content": longfaith_qa_user_prompt(chunks, task.entities)},
+        ]
+        qa_id = stable_id("longfaith-qa", task.path_id)
+        base = {
+            "qa_id": qa_id,
+            "path_id": task.path_id,
+            "doc_ids": list(dict.fromkeys(node.doc_id for node in task.path)),
+            "source_indices": list(dict.fromkeys(node.source_index for node in task.path)),
+            "section_ids": [node.section_id for node in task.path],
+            "titles": list(dict.fromkeys(node.doc_title for node in task.path)),
+            "section_titles": [node.section_title for node in task.path],
+            "entities": list(task.entities),
+            "shared_entities": list(task.shared_entities),
+            "path_length": len(task.path),
+            "prompt_name": "longfaith_graph_path_qa",
+            "generation_mode": "longfaith_qa",
+            "task_type": "cited_long_context_qa",
+            "context": render_cited_context(chunks),
+            **self.config.metadata,
+        }
+        try:
+            raw = self.client.chat(
+                messages,
+                temperature=self.config.relation_temperature,
+                max_tokens=self.config.relation_max_tokens,
+                response_format={"type": "json_object"} if self.config.json_mode else None,
+            )
+            parsed = parse_longfaith_response(raw)
+            question = str(parsed.get("question", "")).strip()
+            answer = str(parsed.get("answer", "")).strip()
+            reasoning = str(parsed.get("reasoning", "")).strip()
+            support_ids = parsed.get("support_ids", [])
+            if not isinstance(support_ids, list):
+                support_ids = []
+            text = render_longfaith_text(base["context"], question, answer, reasoning)
+            return {
+                **base,
+                "question": question,
+                "answer": answer,
+                "reasoning": reasoning,
+                "support_ids": [str(value) for value in support_ids],
+                "raw_response": raw,
+                "text": text,
+            }
+        except Exception as exc:
+            return {**base, "question": "", "answer": "", "reasoning": "", "support_ids": [], "text": "", "error": str(exc)}
+
     def _load_entity_cache(self) -> dict[str, EntityRecord]:
         path = self.config.entity_cache_path
         if not self.config.resume or not path.exists():
@@ -718,6 +793,37 @@ def parse_entity_response(raw_response: str) -> dict[str, Any]:
         if isinstance(parsed, dict):
             return parsed
     raise ValueError(f"Could not parse entity extraction JSON: {raw_response[:500]}")
+
+
+def parse_longfaith_response(raw_response: str) -> dict[str, Any]:
+    parsed = parse_entity_response(raw_response)
+    for key in ("question", "answer", "reasoning"):
+        if key not in parsed:
+            raise ValueError(f"LongFaith QA response missing key: {key}")
+    return parsed
+
+
+def render_cited_context(chunks: tuple[dict[str, str], ...]) -> str:
+    parts = []
+    for index, chunk in enumerate(chunks, start=1):
+        parts.append(
+            f"[{index}] {chunk['doc_title']} / {chunk['section_title']}\n{chunk['text']}"
+        )
+    return "\n\n".join(parts)
+
+
+def render_longfaith_text(context: str, question: str, answer: str, reasoning: str) -> str:
+    return f"""### Context
+{context}
+
+### Question
+{question}
+
+### Answer
+{answer}
+
+### Cited reasoning
+{reasoning}"""
 
 
 def normalize_entities(values: Any, *, min_chars: int) -> list[str]:

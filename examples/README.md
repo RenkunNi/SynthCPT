@@ -26,10 +26,10 @@ entigraph generate \
   --max-entities 12
 ```
 
-Run both the paper-style single-document path and the experimental cross-document path offline:
+Run paper-style single-document, cross-document, SoG-lite, and LongFaith-style QA modes offline:
 
 ```bash
-python examples/run_offline_wiki_pipeline.py --mode both
+python examples/run_offline_wiki_pipeline.py --mode all
 python examples/compare_wiki_fixture.py --generated /tmp/wiki_synth_offline.jsonl
 entigraph evaluate \
   --input examples/wiki_fixture.jsonl \

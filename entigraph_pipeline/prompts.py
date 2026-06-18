@@ -72,6 +72,22 @@ Use clear sections:
 ### Path entities
 ### Grounded synthesis"""
 
+LONGFAITH_QA_SYSTEM_PROMPT = """You will act as a faithful long-context QA generator. The user will provide cited source chunks selected from a graph path. Generate one answerable question, a concise answer, and cited reasoning.
+
+Requirements:
+1. The question must require evidence from at least two chunks.
+2. The answer must be fully supported by the supplied chunks.
+3. The reasoning must cite chunk ids like [1], [2], and must not use outside knowledge.
+4. Do not invent names, dates, places, or claims not present in the chunks.
+
+Return valid JSON:
+{
+  "question": "...",
+  "answer": "...",
+  "reasoning": "According to [1] ...",
+  "support_ids": ["1", "2"]
+}"""
+
 
 def document_user_prompt(text: str, title: str) -> str:
     return f"""Title: {title}
@@ -124,6 +140,24 @@ Text:
         )
     entity_lines = "\n".join(f"- {entity}" for entity in entities)
     return f"""Source chunks:
+
+{chr(10).join(chunk_lines)}
+
+Path entities:
+{entity_lines}"""
+
+
+def longfaith_qa_user_prompt(chunks: tuple[dict[str, str], ...], entities: tuple[str, ...]) -> str:
+    chunk_lines = []
+    for index, chunk in enumerate(chunks, start=1):
+        chunk_lines.append(
+            f"""[{index}] Document: {chunk['doc_title']}
+Section: {chunk['section_title']}
+Text:
+{chunk['text']}"""
+        )
+    entity_lines = "\n".join(f"- {entity}" for entity in entities)
+    return f"""Cited source chunks:
 
 {chr(10).join(chunk_lines)}
 
