@@ -25,6 +25,7 @@ from .prompts import (
     relation_system_prompt,
     relation_user_prompt,
 )
+from .titles import infer_title_from_text
 
 
 class ChatClient(Protocol):
@@ -252,7 +253,7 @@ class EntiGraphPipeline:
             if not isinstance(text, str) or not text.strip():
                 continue
             doc_id = self._doc_id(row, index, text)
-            title = self._title(row, index)
+            title = self._title(row, index, text)
             yield SourceDocument(
                 doc_id=doc_id,
                 source_index=index,
@@ -552,12 +553,12 @@ class EntiGraphPipeline:
                 return str(value)
         return stable_id(str(index), sha256_text(text))
 
-    def _title(self, row: dict[str, Any], index: int) -> str:
+    def _title(self, row: dict[str, Any], index: int, text: str) -> str:
         if self.config.title_key:
             value = row.get(self.config.title_key)
             if isinstance(value, str) and value.strip():
                 return value.strip()
-        return f"Document {index}"
+        return infer_title_from_text(text, index)
 
 
 def entity_record_to_row(record: EntityRecord) -> dict[str, Any]:

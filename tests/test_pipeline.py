@@ -10,6 +10,7 @@ from entigraph_pipeline.pipeline import (
     normalize_entities,
     parse_entity_response,
 )
+from entigraph_pipeline.titles import infer_title_from_text
 
 
 class FakeClient:
@@ -42,6 +43,33 @@ class PipelineTest(unittest.TestCase):
     def test_normalize_entities_dedupes(self):
         values = normalize_entities([" Alpha ", "alpha", "B", "Gamma"], max_entities=10, min_chars=2)
         self.assertEqual(values, ["Alpha", "Gamma"])
+
+    def test_title_fallback_uses_source_text(self):
+        title = infer_title_from_text("# Ada Lovelace and the Analytical Engine\nMore text.", 0)
+        self.assertEqual(title, "Ada Lovelace and the Analytical Engine")
+
+    def test_pipeline_without_title_infers_readable_title(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input.jsonl"
+            output_path = root / "out.jsonl"
+            entity_path = root / "entities.jsonl"
+            input_path.write_text(
+                json.dumps({"id": "doc-1", "text": "Ada Lovelace studied the Analytical Engine. More text."}) + "\n"
+            )
+            config = EntiGraphConfig(
+                input_path=input_path,
+                output_path=output_path,
+                entity_cache_path=entity_path,
+                combo_sizes=(2,),
+                max_combos_per_doc=1,
+                max_workers=1,
+                show_progress=False,
+            )
+            stats = EntiGraphPipeline(config, FakeClient()).run()
+            self.assertEqual(stats["relations_generated"], 1)
+            row = json.loads(output_path.read_text().splitlines()[0])
+            self.assertEqual(row["title"], "Ada Lovelace studied the Analytical Engine")
 
     def test_pipeline_generates_pairs_and_resumes(self):
         with tempfile.TemporaryDirectory() as tmp:

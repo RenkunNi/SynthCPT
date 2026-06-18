@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .io import append_jsonl, read_jsonl
+from .titles import infer_title_from_text
 
 
 STOPWORDS = {
@@ -143,7 +144,7 @@ class EntiGraphEvaluator:
             if not isinstance(text, str) or not text.strip():
                 continue
             doc_id = source_doc_id(row, index, text, self.config.id_key)
-            title = source_title(row, index, self.config.title_key)
+            title = source_title(row, index, self.config.title_key, text)
             entities = normalize_entity_list(row.get("entities", []))
             sources[doc_id] = {
                 "doc_id": doc_id,
@@ -508,10 +509,10 @@ def source_doc_id(row: dict[str, Any], index: int, text: str, id_key: str | None
     return str(index)
 
 
-def source_title(row: dict[str, Any], index: int, title_key: str | None) -> str:
+def source_title(row: dict[str, Any], index: int, title_key: str | None, text: str) -> str:
     if title_key and isinstance(row.get(title_key), str) and row[title_key].strip():
         return row[title_key].strip()
-    return f"Document {index}"
+    return infer_title_from_text(text, index)
 
 
 def tokenize(text: str) -> list[str]:

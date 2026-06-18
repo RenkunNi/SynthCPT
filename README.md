@@ -32,7 +32,7 @@ The pipeline reads one document per JSONL row from `--input`. By default it uses
 - `title`: optional document title
 - `id`, `doc_id`, or `document_id`: optional stable id
 
-Missing/empty `text` rows are skipped.
+Missing/empty `text` rows are skipped. If no title field is present, SynthCPT infers a short title from the first heading, first non-empty line, or first sentence of the source text. Only fully empty title candidates fall back to `Untitled source N`.
 
 ### 2. Extract Entities
 
