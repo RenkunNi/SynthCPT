@@ -2,8 +2,8 @@
 """Compare generated SynthCPT outputs with dependency-free quality signals.
 
 The helper is intentionally lightweight: it only uses the Python standard
-library and accepts any generated JSONL that follows the current EntiGraph
-single-doc or cross-doc row schema. Pass files as either PATH or LABEL=PATH.
+library and accepts generated JSONL that follows the current EntiGraph graph
+row schemas. Pass files as either PATH or LABEL=PATH.
 """
 
 from __future__ import annotations
@@ -115,7 +115,7 @@ def summarize_generation(label: str, path: Path, sources: dict[str, dict[str, An
     scored = [score_row(row, sources) for row in rows]
     rows_by_mode = Counter(row["mode"] for row in scored)
     warning_counts = Counter(warning for row in scored for warning in row["warnings"])
-    duplicate_texts = duplicate_count(normalize_text(str(row.get("text", ""))) for row in rows)
+    duplicate_texts = duplicate_count(normalize_text(evaluation_text(row)) for row in rows)
     return {
         "label": label,
         "path": path,
@@ -140,7 +140,7 @@ def score_row(row: dict[str, Any], sources: dict[str, dict[str, Any]]) -> dict[s
     source_text = "\n".join(f"{doc['title']}\n{doc['text']}" for doc in source_docs)
     source_entities = sorted({entity for doc in source_docs for entity in doc["entities"]}, key=str.casefold)
     entities = row_entities(row, mode)
-    text = str(row.get("text", ""))
+    text = evaluation_text(row)
     unsupported = unsupported_proper_nouns(text, source_text, entities, source_entities)
     warnings = []
     if row.get("error"):
@@ -203,7 +203,7 @@ def render_markdown(summaries: list[dict[str, Any]]) -> str:
             "",
             "- Higher entity support, entity mention, and relation signal are better.",
             "- Lower unsupported nouns, source 5-gram overlap, errors, and duplicate texts are better.",
-            "- Use the same command with new SoG-lite graph-path or LongFaith-style QA JSONL outputs once they exist.",
+            "- Use the same command to compare single-doc, cross-doc, SoG-lite, long-context, and LongFaith-style outputs.",
         ]
     )
     return "\n".join(lines)
@@ -286,6 +286,8 @@ def relation_signal_score(text: str, entities: list[str]) -> float:
 def generation_mode(row: dict[str, Any]) -> str:
     if row.get("generation_mode") == "longfaith_qa" or "qa_id" in row:
         return "longfaith_qa"
+    if row.get("generation_mode") == "long_context" or "long_context_id" in row:
+        return "long_context"
     if row.get("generation_mode") == "sog_lite" or "path_id" in row:
         return "sog_lite"
     if row.get("generation_mode") == "cross_doc" or "graph_id" in row:
@@ -302,8 +304,24 @@ def row_doc_ids(row: dict[str, Any]) -> list[str]:
 
 
 def row_entities(row: dict[str, Any], mode: str) -> list[str]:
-    key = "shared_entities" if mode == "cross_doc" else "entities"
-    return normalize_entities(row.get(key, []))
+    target = normalize_entities(row.get("target_entities", []))
+    if target:
+        return target
+    if mode in {"cross_doc", "sog_lite", "long_context", "longfaith_qa"}:
+        shared = normalize_entities(row.get("shared_entities", []))
+        if shared:
+            return shared
+    return normalize_entities(row.get("entities", []))
+
+
+def evaluation_text(row: dict[str, Any]) -> str:
+    if generation_mode(row) == "longfaith_qa":
+        return "\n\n".join(
+            str(row.get(key, "")).strip()
+            for key in ("question", "answer", "reasoning")
+            if str(row.get(key, "")).strip()
+        )
+    return str(row.get("text", ""))
 
 
 def read_jsonl(path: Path) -> list[tuple[int, dict[str, Any]]]:

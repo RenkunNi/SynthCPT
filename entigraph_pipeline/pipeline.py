@@ -15,17 +15,27 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Protocol
 
 from .entity_selection import select_entities_for_records
-from .graph_paths import SectionNode, build_section_nodes, path_entities, sample_graph_paths, shared_path_entities
+from .graph_paths import (
+    SectionNode,
+    build_section_nodes,
+    graph_path_metrics,
+    path_entities,
+    sample_graph_paths,
+    shared_path_entities,
+)
 from .io import append_jsonl, read_completed_keys, read_jsonl
 from .llm import OpenAICompatibleClient
 from .progress import ProgressBar
 from .prompts import (
     CROSS_DOCUMENT_SYSTEM_PROMPT,
     ENTITY_SYSTEM_PROMPT,
+    GENERATION_STYLES,
+    LONG_CONTEXT_SYSTEM_PROMPT,
     SOG_LITE_SYSTEM_PROMPT,
     LONGFAITH_QA_SYSTEM_PROMPT,
     cross_document_user_prompt,
     document_user_prompt,
+    long_context_user_prompt,
     longfaith_qa_user_prompt,
     relation_system_prompt,
     relation_user_prompt,
@@ -69,6 +79,13 @@ class EntiGraphConfig:
     sog_path_length: int = 3
     sog_max_paths: int | None = 1000
     sog_max_section_chars: int = 1800
+    sog_path_strategy: str = "dfs"
+    sog_candidate_multiplier: int = 8
+    sog_min_shared_entities: int = 0
+    generation_styles: tuple[str, ...] = ("default",)
+    long_context_paths_per_example: int = 3
+    long_context_max_examples: int | None = 100
+    long_context_max_chars: int = 6000
     random_seed: int = 13
     max_workers: int = 8
     entity_temperature: float = 0.0
@@ -138,10 +155,33 @@ class SogLitePathTask:
     path: tuple[SectionNode, ...]
     entities: tuple[str, ...]
     shared_entities: tuple[str, ...]
+    generation_style: str = "default"
 
     @property
     def path_id(self) -> str:
-        return stable_id("sog-lite", *[node.section_id for node in self.path], "|".join(self.entities))
+        base = stable_id(
+            "sog-lite",
+            *[f"{node.section_id}:{node.source_sha256}" for node in self.path],
+            "|".join(self.entities),
+        )
+        if self.generation_style == "default":
+            return base
+        return stable_id("sog-lite", base, self.generation_style)
+
+
+@dataclass(frozen=True)
+class LongContextTask:
+    paths: tuple[SogLitePathTask, ...]
+    entities: tuple[str, ...]
+    shared_entities: tuple[str, ...]
+    generation_style: str = "default"
+
+    @property
+    def long_context_id(self) -> str:
+        path_key = "|".join(path.path_id for path in self.paths)
+        if self.generation_style == "default":
+            return stable_id("long-context", path_key)
+        return stable_id("long-context", path_key, self.generation_style)
 
 
 class EntiGraphPipeline:
@@ -152,14 +192,16 @@ class EntiGraphPipeline:
         self._output_lock = threading.Lock()
 
     def run(self) -> dict[str, int]:
-        if self.config.mode not in {"single-doc", "cross-doc", "sog-lite", "longfaith-qa", "both", "all"}:
-            raise ValueError("mode must be one of: single-doc, cross-doc, sog-lite, longfaith-qa, both, all")
+        if self.config.mode not in {"single-doc", "cross-doc", "sog-lite", "long-context", "longfaith-qa", "both", "all"}:
+            raise ValueError("mode must be one of: single-doc, cross-doc, sog-lite, long-context, longfaith-qa, both, all")
+        self.validate_extension_config()
         docs = list(self.iter_documents())
         entity_records = self.ensure_entities(docs)
         entity_records, entity_selection_stats = self.select_entity_records(docs, entity_records)
         relation_stats = empty_generation_stats("relations")
         cross_doc_stats = empty_generation_stats("cross_doc")
         sog_lite_stats = empty_generation_stats("sog_lite")
+        long_context_stats = empty_generation_stats("long_context")
         longfaith_stats = empty_generation_stats("longfaith_qa")
         if self.config.mode in {"single-doc", "both", "all"}:
             relation_total = self.count_relation_tasks(docs, entity_records) if self.config.show_progress else None
@@ -191,6 +233,16 @@ class EntiGraphPipeline:
                 prefix="sog_lite",
                 total=sog_lite_total,
             )
+        if self.config.mode in {"long-context", "all"}:
+            long_context_total = self.count_long_context_tasks(docs, entity_records) if self.config.show_progress else None
+            long_context_stats = self._run_generation_tasks(
+                self.iter_long_context_tasks(docs, entity_records),
+                completed_key="long_context_id",
+                task_key=lambda task: task.long_context_id,
+                generate=lambda task: self.generate_long_context(task),
+                prefix="long_context",
+                total=long_context_total,
+            )
         if self.config.mode in {"longfaith-qa", "all"}:
             longfaith_total = self.count_sog_lite_tasks(docs, entity_records) if self.config.show_progress else None
             longfaith_stats = self._run_generation_tasks(
@@ -210,8 +262,21 @@ class EntiGraphPipeline:
             **relation_stats,
             **cross_doc_stats,
             **sog_lite_stats,
+            **long_context_stats,
             **longfaith_stats,
         }
+
+    def validate_extension_config(self) -> None:
+        invalid_styles = set(self.config.generation_styles) - set(GENERATION_STYLES)
+        if invalid_styles:
+            valid = ", ".join(GENERATION_STYLES)
+            raise ValueError(f"unknown generation style(s): {sorted(invalid_styles)}; valid styles: {valid}")
+        if not self.config.generation_styles:
+            raise ValueError("at least one generation style is required")
+        if self.config.sog_path_strategy not in {"dfs", "bridge", "coverage"}:
+            raise ValueError("sog_path_strategy must be one of: dfs, bridge, coverage")
+        if self.config.long_context_paths_per_example <= 0:
+            raise ValueError("long_context_paths_per_example must be positive")
 
     def _run_generation_tasks(
         self,
@@ -228,6 +293,7 @@ class EntiGraphPipeline:
         labels = {
             "cross_doc": "generate cross-doc",
             "sog_lite": "generate SoG-lite",
+            "long_context": "generate long-context",
             "longfaith_qa": "generate LongFaith QA",
         }
         label = labels.get(prefix, "generate relations")
@@ -531,12 +597,23 @@ class EntiGraphPipeline:
             nodes,
             path_length=self.config.sog_path_length,
             max_paths=self.config.sog_max_paths,
+            strategy=self.config.sog_path_strategy,
+            candidate_multiplier=self.config.sog_candidate_multiplier,
         )
         for path in paths:
             entities = path_entities(path)
             if not entities:
                 continue
-            yield SogLitePathTask(path=path, entities=entities, shared_entities=shared_path_entities(path))
+            shared_entities = shared_path_entities(path)
+            if len(shared_entities) < self.config.sog_min_shared_entities:
+                continue
+            for style in self.config.generation_styles:
+                yield SogLitePathTask(
+                    path=path,
+                    entities=entities,
+                    shared_entities=shared_entities,
+                    generation_style=style,
+                )
 
     def count_sog_lite_tasks(
         self,
@@ -544,6 +621,73 @@ class EntiGraphPipeline:
         entity_records: dict[str, EntityRecord],
     ) -> int:
         return sum(1 for _ in self.iter_sog_lite_tasks(docs, entity_records))
+
+    def iter_long_context_tasks(
+        self,
+        docs: list[SourceDocument],
+        entity_records: dict[str, EntityRecord],
+    ) -> Iterable[LongContextTask]:
+        base_config = replace(self.config, generation_styles=("default",))
+        base_tasks = list(
+            EntiGraphPipeline(base_config, self.client).iter_sog_lite_tasks(docs, entity_records)
+        )
+        if not base_tasks:
+            return
+        max_examples = self.config.long_context_max_examples
+        emitted = 0
+        group_size = self.config.long_context_paths_per_example
+        for start in range(0, len(base_tasks), group_size):
+            group = tuple(base_tasks[start : start + group_size])
+            if len(group) < group_size:
+                break
+            chunks = self._chunks_for_long_context_group(group)
+            if sum(len(chunk["text"]) for chunk in chunks) > self.config.long_context_max_chars:
+                group = self._trim_long_context_group(group)
+                if not group:
+                    continue
+            entities = unique_entities(entity for task in group for entity in task.entities)
+            shared = unique_entities(entity for task in group for entity in task.shared_entities)
+            for style in self.config.generation_styles:
+                yield LongContextTask(
+                    paths=tuple(replace(task, generation_style=style) for task in group),
+                    entities=entities,
+                    shared_entities=shared,
+                    generation_style=style,
+                )
+                emitted += 1
+                if max_examples is not None and emitted >= max_examples:
+                    return
+
+    def _chunks_for_long_context_group(self, group: tuple[SogLitePathTask, ...]) -> list[dict[str, str]]:
+        return [
+            {
+                "section_id": node.section_id,
+                "doc_id": node.doc_id,
+                "doc_title": node.doc_title,
+                "section_title": node.section_title,
+                "text": node.text,
+            }
+            for task in group
+            for node in task.path
+        ]
+
+    def _trim_long_context_group(self, group: tuple[SogLitePathTask, ...]) -> tuple[SogLitePathTask, ...]:
+        kept = []
+        total_chars = 0
+        for task in group:
+            path_chars = sum(len(node.text) for node in task.path)
+            if kept and total_chars + path_chars > self.config.long_context_max_chars:
+                break
+            kept.append(task)
+            total_chars += path_chars
+        return tuple(kept) if len(kept) >= 1 else ()
+
+    def count_long_context_tasks(
+        self,
+        docs: list[SourceDocument],
+        entity_records: dict[str, EntityRecord],
+    ) -> int:
+        return sum(1 for _ in self.iter_long_context_tasks(docs, entity_records))
 
     def generate_relation(self, task: RelationTask) -> dict[str, Any]:
         system_prompt = relation_system_prompt(len(task.entities))
@@ -631,18 +775,25 @@ class EntiGraphPipeline:
         )
         messages = [
             {"role": "system", "content": SOG_LITE_SYSTEM_PROMPT},
-            {"role": "user", "content": sog_lite_user_prompt(chunks, task.entities)},
+            {
+                "role": "user",
+                "content": sog_lite_user_prompt(chunks, task.entities, style=task.generation_style),
+            },
         ]
         base = {
             "path_id": task.path_id,
             "doc_ids": list(dict.fromkeys(node.doc_id for node in task.path)),
             "source_indices": list(dict.fromkeys(node.source_index for node in task.path)),
+            "source_sha256": list(dict.fromkeys(node.source_sha256 for node in task.path)),
             "section_ids": [node.section_id for node in task.path],
             "titles": list(dict.fromkeys(node.doc_title for node in task.path)),
             "section_titles": [node.section_title for node in task.path],
             "entities": list(task.entities),
             "shared_entities": list(task.shared_entities),
             "path_length": len(task.path),
+            "path_metrics": graph_path_metrics(task.path),
+            "path_strategy": self.config.sog_path_strategy,
+            "style": task.generation_style,
             "prompt_name": "sog_lite_graph_path",
             "generation_mode": "sog_lite",
             "task_type": "graph_path_synthesis",
@@ -660,7 +811,70 @@ class EntiGraphPipeline:
         except Exception as exc:
             return {**base, "text": "", "error": str(exc)}
 
+    def generate_long_context(self, task: LongContextTask) -> dict[str, Any]:
+        path_payloads = tuple(
+            {
+                "path_id": path.path_id,
+                "entities": path.entities,
+                "chunks": tuple(
+                    {
+                        "section_id": node.section_id,
+                        "doc_id": node.doc_id,
+                        "doc_title": node.doc_title,
+                        "section_title": node.section_title,
+                        "text": node.text,
+                    }
+                    for node in path.path
+                ),
+            }
+            for path in task.paths
+        )
+        messages = [
+            {"role": "system", "content": LONG_CONTEXT_SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": long_context_user_prompt(path_payloads, task.entities, style=task.generation_style),
+            },
+        ]
+        all_nodes = tuple(node for path in task.paths for node in path.path)
+        base = {
+            "long_context_id": task.long_context_id,
+            "path_ids": [path.path_id for path in task.paths],
+            "doc_ids": list(dict.fromkeys(node.doc_id for node in all_nodes)),
+            "source_indices": list(dict.fromkeys(node.source_index for node in all_nodes)),
+            "source_sha256": list(dict.fromkeys(node.source_sha256 for node in all_nodes)),
+            "section_ids": list(dict.fromkeys(node.section_id for node in all_nodes)),
+            "titles": list(dict.fromkeys(node.doc_title for node in all_nodes)),
+            "section_titles": list(dict.fromkeys(node.section_title for node in all_nodes)),
+            "entities": list(task.entities),
+            "shared_entities": list(task.shared_entities),
+            "path_count": len(task.paths),
+            "chunk_count": len(all_nodes),
+            "path_metrics": [graph_path_metrics(path.path) for path in task.paths],
+            "path_strategy": self.config.sog_path_strategy,
+            "style": task.generation_style,
+            "prompt_name": "long_context_graph_paths",
+            "generation_mode": "long_context",
+            "task_type": "multi_path_long_context_synthesis",
+            **self.config.metadata,
+        }
+        if self.config.include_source_text:
+            base["source_paths"] = [
+                {"path_id": payload["path_id"], "entities": list(payload["entities"]), "chunks": list(payload["chunks"])}
+                for payload in path_payloads
+            ]
+        try:
+            text = self.client.chat(
+                messages,
+                temperature=self.config.relation_temperature,
+                max_tokens=self.config.relation_max_tokens,
+            )
+            return {**base, "text": text}
+        except Exception as exc:
+            return {**base, "text": "", "error": str(exc)}
+
     def generate_longfaith_qa(self, task: SogLitePathTask) -> dict[str, Any]:
+        target_entities = choose_target_entities(task.shared_entities or task.entities, limit=3)
         chunks = tuple(
             {
                 "section_id": node.section_id,
@@ -673,7 +887,15 @@ class EntiGraphPipeline:
         )
         messages = [
             {"role": "system", "content": LONGFAITH_QA_SYSTEM_PROMPT},
-            {"role": "user", "content": longfaith_qa_user_prompt(chunks, task.entities)},
+            {
+                "role": "user",
+                "content": longfaith_qa_user_prompt(
+                    chunks,
+                    task.entities,
+                    target_entities=target_entities,
+                    style=task.generation_style,
+                ),
+            },
         ]
         qa_id = stable_id("longfaith-qa", task.path_id)
         base = {
@@ -681,12 +903,17 @@ class EntiGraphPipeline:
             "path_id": task.path_id,
             "doc_ids": list(dict.fromkeys(node.doc_id for node in task.path)),
             "source_indices": list(dict.fromkeys(node.source_index for node in task.path)),
+            "source_sha256": list(dict.fromkeys(node.source_sha256 for node in task.path)),
             "section_ids": [node.section_id for node in task.path],
             "titles": list(dict.fromkeys(node.doc_title for node in task.path)),
             "section_titles": [node.section_title for node in task.path],
             "entities": list(task.entities),
             "shared_entities": list(task.shared_entities),
+            "target_entities": list(target_entities),
             "path_length": len(task.path),
+            "path_metrics": graph_path_metrics(task.path),
+            "path_strategy": self.config.sog_path_strategy,
+            "style": task.generation_style,
             "prompt_name": "longfaith_graph_path_qa",
             "generation_mode": "longfaith_qa",
             "task_type": "cited_long_context_qa",
@@ -843,6 +1070,24 @@ def normalize_entities(values: Any, *, min_chars: int) -> list[str]:
         seen.add(key)
         normalized.append(entity)
     return normalized
+
+
+def unique_entities(values: Iterable[str]) -> tuple[str, ...]:
+    entities = []
+    seen = set()
+    for value in values:
+        key = entity_normal_key(value)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        entities.append(value)
+    return tuple(entities)
+
+
+def choose_target_entities(entities: tuple[str, ...], *, limit: int) -> tuple[str, ...]:
+    if limit <= 0:
+        return ()
+    return tuple(entities[:limit])
 
 
 def iter_entity_combos(

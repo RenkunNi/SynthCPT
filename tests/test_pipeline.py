@@ -34,6 +34,8 @@ class FakeClient:
         user = messages[1]["content"]
         if "Shared entities:" in user:
             return "Cross-document synthetic text\n" + user.split("Shared entities:", 1)[1].strip()
+        if "Global entities:" in user:
+            return "Long-context synthetic text\n" + user.split("Global entities:", 1)[1].strip()
         if "Path entities:" in user:
             if "faithful long-context qa" in messages[0]["content"].lower():
                 return json.dumps(
@@ -169,6 +171,7 @@ class PipelineTest(unittest.TestCase):
         nodes = split_markdown_sections(
             doc_id="doc",
             source_index=0,
+            source_sha256="abc",
             doc_title="Doc",
             text="# Title\n\n## Engine\nAda Lovelace studied the Analytical Engine.\n\n## Loom\nThe Jacquard loom used cards.",
             entities=("Ada Lovelace", "Analytical Engine", "Jacquard loom"),
@@ -218,6 +221,87 @@ class PipelineTest(unittest.TestCase):
             self.assertEqual(output_rows[0]["generation_mode"], "sog_lite")
             self.assertEqual(output_rows[0]["task_type"], "graph_path_synthesis")
             self.assertIn("path_id", output_rows[0])
+            self.assertIn("source_sha256", output_rows[0])
+            self.assertIn("path_metrics", output_rows[0])
+
+    def test_sog_lite_styles_generate_distinct_rows(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input.jsonl"
+            output_path = root / "out.jsonl"
+            entity_path = root / "entities.jsonl"
+            rows = [
+                {
+                    "id": "ada",
+                    "title": "Ada Lovelace",
+                    "text": "Ada Lovelace wrote notes about the Analytical Engine with Charles Babbage.",
+                },
+                {
+                    "id": "babbage",
+                    "title": "Charles Babbage",
+                    "text": "Charles Babbage designed the Difference Engine and the Analytical Engine.",
+                },
+            ]
+            input_path.write_text("".join(json.dumps(row) + "\n" for row in rows))
+            config = EntiGraphConfig(
+                input_path=input_path,
+                output_path=output_path,
+                entity_cache_path=entity_path,
+                mode="sog-lite",
+                sog_path_length=2,
+                sog_max_paths=1,
+                generation_styles=("default", "contrastive"),
+                max_workers=2,
+                show_progress=False,
+            )
+            stats = EntiGraphPipeline(config, FakeClient()).run()
+            self.assertEqual(stats["sog_lite_generated"], 2)
+            output_rows = [json.loads(line) for line in output_path.read_text().splitlines()]
+            self.assertEqual({row["style"] for row in output_rows}, {"default", "contrastive"})
+            self.assertEqual(len({row["path_id"] for row in output_rows}), 2)
+
+    def test_long_context_mode_groups_graph_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input.jsonl"
+            output_path = root / "out.jsonl"
+            entity_path = root / "entities.jsonl"
+            rows = [
+                {
+                    "id": "ada",
+                    "title": "Ada Lovelace",
+                    "text": "Ada Lovelace wrote notes about the Analytical Engine with Charles Babbage.",
+                },
+                {
+                    "id": "babbage",
+                    "title": "Charles Babbage",
+                    "text": "Charles Babbage designed the Difference Engine and the Analytical Engine.",
+                },
+                {
+                    "id": "engine",
+                    "title": "Analytical Engine",
+                    "text": "Ada Lovelace and Charles Babbage discussed the Analytical Engine.",
+                },
+            ]
+            input_path.write_text("".join(json.dumps(row) + "\n" for row in rows))
+            config = EntiGraphConfig(
+                input_path=input_path,
+                output_path=output_path,
+                entity_cache_path=entity_path,
+                mode="long-context",
+                sog_path_length=2,
+                sog_max_paths=2,
+                long_context_paths_per_example=2,
+                long_context_max_examples=1,
+                max_workers=2,
+                show_progress=False,
+            )
+            stats = EntiGraphPipeline(config, FakeClient()).run()
+            self.assertEqual(stats["long_context_generated"], 1)
+            output_rows = [json.loads(line) for line in output_path.read_text().splitlines()]
+            self.assertEqual(output_rows[0]["generation_mode"], "long_context")
+            self.assertEqual(output_rows[0]["task_type"], "multi_path_long_context_synthesis")
+            self.assertEqual(output_rows[0]["path_count"], 2)
 
     def test_longfaith_qa_mode_generates_cited_qa(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -255,6 +339,7 @@ class PipelineTest(unittest.TestCase):
             self.assertEqual(output_rows[0]["task_type"], "cited_long_context_qa")
             self.assertIn("question", output_rows[0])
             self.assertIn("[1]", output_rows[0]["reasoning"])
+            self.assertIn("source_sha256", output_rows[0])
 
     def test_failed_output_rows_are_retried_on_resume(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -323,6 +408,49 @@ class PipelineTest(unittest.TestCase):
             self.assertTrue((output_dir / "rows.jsonl").exists())
             self.assertTrue((output_dir / "summary.json").exists())
             self.assertTrue((output_dir / "probes.jsonl").exists())
+
+    def test_evaluator_scores_longfaith_without_copied_context(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input.jsonl"
+            generated_path = root / "generated.jsonl"
+            output_dir = root / "evaluate"
+            input_path.write_text(
+                json.dumps(
+                    {
+                        "id": "doc-1",
+                        "title": "Analytical Engine",
+                        "entities": ["Analytical Engine", "Ada Lovelace"],
+                        "text": "Ada Lovelace studied the Analytical Engine.",
+                    }
+                )
+                + "\n"
+            )
+            generated_path.write_text(
+                json.dumps(
+                    {
+                        "qa_id": "qa-1",
+                        "path_id": "path-1",
+                        "doc_ids": ["doc-1"],
+                        "generation_mode": "longfaith_qa",
+                        "shared_entities": ["Analytical Engine", "Ada Lovelace"],
+                        "context": "Ada Lovelace studied the Analytical Engine.",
+                        "question": "How are Ada Lovelace and the Analytical Engine connected?",
+                        "answer": "Ada Lovelace studied the Analytical Engine.",
+                        "reasoning": "According to [1], Ada Lovelace studied the Analytical Engine. According to [2], the cited path supports the connection.",
+                        "support_ids": ["1", "2"],
+                        "text": "### Context\nAda Lovelace studied the Analytical Engine.\n\n### Question\n...",
+                    }
+                )
+                + "\n"
+            )
+            summary = EntiGraphEvaluator(
+                EvaluationConfig(input_path=input_path, generated_path=generated_path, output_dir=output_dir)
+            ).run()
+            self.assertEqual(summary["passed"], 1)
+            row = json.loads((output_dir / "rows.jsonl").read_text().splitlines()[0])
+            self.assertEqual(row["generated_id"], "qa-1")
+            self.assertEqual(row["scores"]["citation_support"], 1.0)
 
 
 if __name__ == "__main__":

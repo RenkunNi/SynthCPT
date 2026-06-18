@@ -4,13 +4,21 @@
   "input_path": "examples/wiki_fixture.jsonl",
   "output_dir": "evaluate",
   "pass_rate": 1.0,
-  "passed": 16,
-  "rows": 16,
+  "passed": 36,
+  "rows": 36,
   "rows_by_mode": {
     "cross_doc": 4,
-    "single_doc": 12
+    "long_context": 4,
+    "longfaith_qa": 8,
+    "single_doc": 12,
+    "sog_lite": 8
   },
   "score_summary": {
+    "citation_support": {
+      "max": 1.0,
+      "mean": 1.0,
+      "min": 1.0
+    },
     "length": {
       "max": 1.0,
       "mean": 1.0,
@@ -18,8 +26,8 @@
     },
     "overall": {
       "max": 0.9984,
-      "mean": 0.9392,
-      "min": 0.9231
+      "mean": 0.9501,
+      "min": 0.912
     },
     "redundancy_score": {
       "max": 1.0,
@@ -28,7 +36,7 @@
     },
     "relation_signal": {
       "max": 1.0,
-      "mean": 0.6906,
+      "mean": 0.8375,
       "min": 0.55
     },
     "selected_entity_mention": {
@@ -42,19 +50,19 @@
       "min": 1.0
     },
     "source_5gram_overlap": {
-      "max": 0.0,
-      "mean": 0.0,
+      "max": 0.1573,
+      "mean": 0.0815,
       "min": 0.0
     },
     "specificity": {
       "max": 1.0,
-      "mean": 0.9186,
+      "mean": 0.7781,
       "min": 0.3556
     },
     "structure": {
       "max": 1.0,
-      "mean": 0.6563,
-      "min": 0.5417
+      "mean": 0.7083,
+      "min": 0.375
     },
     "unsupported_proper_noun_score": {
       "max": 1.0,

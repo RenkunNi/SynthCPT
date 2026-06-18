@@ -172,7 +172,7 @@ class EntiGraphEvaluator:
         source_text = "\n".join(f"{doc['title']}\n{doc['text']}" for doc in source_docs)
         source_entities = sorted({entity for doc in source_docs for entity in doc["entities"]}, key=str.casefold)
         selected_entities = row_entities(row)
-        text = str(row.get("text", ""))
+        text = evaluation_text(row, mode)
         warnings: list[str] = []
         if row.get("error"):
             warnings.append("generated row has error")
@@ -190,6 +190,7 @@ class EntiGraphEvaluator:
         specificity = specificity_score(text, selected_entities)
         structure = structure_score(text)
         length = length_score(text)
+        citation_score = citation_support_score(row, mode)
         unsupported_score = clamp01(1.0 - len(unsupported) / 5.0)
         overall = round(
             0.22 * selected_support
@@ -202,12 +203,15 @@ class EntiGraphEvaluator:
             + 0.05 * length,
             4,
         )
+        if mode == "longfaith_qa":
+            overall = round(overall * 0.9 + citation_score * 0.1, 4)
         pass_gate = (
             overall >= self.config.min_overall_score
             and selected_support >= 0.95
             and selected_mention >= 0.8
             and len(unsupported) <= self.config.max_unsupported_proper_nouns
             and ngram_overlap <= self.config.max_redundancy_overlap
+            and (mode != "longfaith_qa" or citation_score >= 1.0)
             and not row.get("error")
             and bool(text.strip())
         )
@@ -219,11 +223,14 @@ class EntiGraphEvaluator:
             warnings.append("generated text contains unsupported proper nouns")
         if ngram_overlap > self.config.max_redundancy_overlap:
             warnings.append("generated text is too close to source text")
+        if mode == "longfaith_qa" and citation_score < 1.0:
+            warnings.append("LongFaith QA reasoning does not cite at least two valid support chunks")
 
         return {
             "row_index": index,
-            "generated_id": str(row.get("relation_id") or row.get("graph_id") or index),
+            "generated_id": generated_row_id(row, index),
             "generation_mode": mode,
+            "style": str(row.get("style", "default")),
             "doc_ids": doc_ids,
             "selected_entities": selected_entities,
             "scores": {
@@ -237,11 +244,12 @@ class EntiGraphEvaluator:
                 "specificity": round(specificity, 4),
                 "structure": round(structure, 4),
                 "length": round(length, 4),
+                "citation_support": round(citation_score, 4),
             },
             "pass_gate": pass_gate,
             "warnings": warnings,
             "unsupported_proper_nouns": unsupported,
-            "probes": build_probes(row, selected_entities, doc_ids, mode),
+            "probes": build_probes(row, selected_entities, doc_ids, mode, generated_row_id(row, index)),
         }
 
 
@@ -366,8 +374,8 @@ def build_probes(
     entities: list[str],
     doc_ids: list[str],
     mode: str,
+    generated_id: str,
 ) -> list[dict[str, Any]]:
-    generated_id = str(row.get("relation_id") or row.get("graph_id") or "")
     probes = []
     if mode == "cross_doc":
         for entity in entities:
@@ -408,6 +416,7 @@ def summarize_evaluations(evaluations: list[dict[str, Any]]) -> dict[str, Any]:
         "specificity",
         "structure",
         "length",
+        "citation_support",
     ]
     score_summary = {}
     for key in score_keys:
@@ -468,6 +477,8 @@ def generation_mode(row: dict[str, Any]) -> str:
     mode = row.get("generation_mode")
     if mode == "longfaith_qa" or "qa_id" in row:
         return "longfaith_qa"
+    if mode == "long_context" or "long_context_id" in row:
+        return "long_context"
     if mode == "sog_lite" or "path_id" in row:
         return "sog_lite"
     if mode == "cross_doc" or "graph_id" in row:
@@ -484,8 +495,46 @@ def row_doc_ids(row: dict[str, Any]) -> list[str]:
 
 
 def row_entities(row: dict[str, Any]) -> list[str]:
-    key = "shared_entities" if generation_mode(row) == "cross_doc" else "entities"
-    return normalize_entity_list(row.get(key, []))
+    mode = generation_mode(row)
+    target = normalize_entity_list(row.get("target_entities", []))
+    if target:
+        return target
+    if mode in {"cross_doc", "sog_lite", "long_context", "longfaith_qa"}:
+        shared = normalize_entity_list(row.get("shared_entities", []))
+        if shared:
+            return shared
+    return normalize_entity_list(row.get("entities", []))
+
+
+def generated_row_id(row: dict[str, Any], index: int) -> str:
+    for key in ("relation_id", "graph_id", "qa_id", "long_context_id", "path_id"):
+        value = row.get(key)
+        if value:
+            return str(value)
+    return str(index)
+
+
+def evaluation_text(row: dict[str, Any], mode: str) -> str:
+    if mode == "longfaith_qa":
+        return "\n\n".join(
+            str(row.get(key, "")).strip()
+            for key in ("question", "answer", "reasoning")
+            if str(row.get(key, "")).strip()
+        )
+    return str(row.get("text", ""))
+
+
+def citation_support_score(row: dict[str, Any], mode: str) -> float:
+    if mode != "longfaith_qa":
+        return 1.0
+    support_ids = row.get("support_ids", [])
+    if not isinstance(support_ids, list):
+        support_ids = []
+    support_keys = {str(value).strip("[] ") for value in support_ids if str(value).strip("[] ")}
+    reasoning = str(row.get("reasoning", ""))
+    cited = set(re.findall(r"\[(\d+)\]", reasoning))
+    valid_citations = support_keys & cited if support_keys else cited
+    return 1.0 if len(valid_citations) >= 2 else len(valid_citations) / 2.0
 
 
 def normalize_entity_list(value: Any) -> list[str]:

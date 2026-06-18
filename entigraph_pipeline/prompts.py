@@ -72,6 +72,19 @@ Use clear sections:
 ### Path entities
 ### Grounded synthesis"""
 
+LONG_CONTEXT_SYSTEM_PROMPT = """You will act as a long-context graph synthesizer. The user will provide multiple connected graph paths built from source chunks. Generate one coherent long-context continued-pretraining document.
+
+Requirements:
+1. Use only facts supported by the supplied chunks.
+2. Connect evidence across paths instead of summarizing each chunk independently.
+3. Preserve useful structure for long-context learning: local details, cross-path links, and an integrated conclusion.
+4. Do not invent details, dates, names, or claims not present in the chunks.
+
+Use clear sections:
+### Long-context graph map
+### Cross-path evidence
+### Integrated long-context synthesis"""
+
 LONGFAITH_QA_SYSTEM_PROMPT = """You will act as a faithful long-context QA generator. The user will provide cited source chunks selected from a graph path. Generate one answerable question, a concise answer, and cited reasoning.
 
 Requirements:
@@ -87,6 +100,16 @@ Return valid JSON:
   "reasoning": "According to [1] ...",
   "support_ids": ["1", "2"]
 }"""
+
+STYLE_INSTRUCTIONS = {
+    "default": "",
+    "synthesis": "Style: write an integrated synthesis that emphasizes how the evidence forms one connected explanation.",
+    "contrastive": "Style: emphasize supported similarities, differences, and tensions across the supplied evidence.",
+    "timeline": "Style: organize the response chronologically when the supplied evidence supports chronology; otherwise state the supported ordering cautiously.",
+    "causal": "Style: emphasize supported mechanisms, dependencies, and consequences without inventing causal claims.",
+}
+
+GENERATION_STYLES = tuple(STYLE_INSTRUCTIONS)
 
 
 def document_user_prompt(text: str, title: str) -> str:
@@ -129,7 +152,12 @@ Shared entities:
 {entity_lines}"""
 
 
-def sog_lite_user_prompt(chunks: tuple[dict[str, str], ...], entities: tuple[str, ...]) -> str:
+def sog_lite_user_prompt(
+    chunks: tuple[dict[str, str], ...],
+    entities: tuple[str, ...],
+    *,
+    style: str = "default",
+) -> str:
     chunk_lines = []
     for index, chunk in enumerate(chunks, start=1):
         chunk_lines.append(
@@ -144,10 +172,51 @@ Text:
 {chr(10).join(chunk_lines)}
 
 Path entities:
-{entity_lines}"""
+{entity_lines}{style_suffix(style)}"""
 
 
-def longfaith_qa_user_prompt(chunks: tuple[dict[str, str], ...], entities: tuple[str, ...]) -> str:
+def long_context_user_prompt(
+    paths: tuple[dict[str, object], ...],
+    entities: tuple[str, ...],
+    *,
+    style: str = "default",
+) -> str:
+    path_lines = []
+    for path_index, path in enumerate(paths, start=1):
+        chunk_lines = []
+        chunks = path["chunks"]
+        assert isinstance(chunks, tuple)
+        for chunk_index, chunk in enumerate(chunks, start=1):
+            chunk_lines.append(
+                f"""[P{path_index}.{chunk_index}] Document: {chunk['doc_title']}
+Section: {chunk['section_title']}
+Text:
+{chunk['text']}"""
+            )
+        path_entities = "\n".join(f"- {entity}" for entity in path["entities"])
+        path_lines.append(
+            f"""Path {path_index}
+Entities:
+{path_entities}
+Chunks:
+{chr(10).join(chunk_lines)}"""
+        )
+    entity_lines = "\n".join(f"- {entity}" for entity in entities)
+    return f"""Connected graph paths:
+
+{chr(10).join(path_lines)}
+
+Global entities:
+{entity_lines}{style_suffix(style)}"""
+
+
+def longfaith_qa_user_prompt(
+    chunks: tuple[dict[str, str], ...],
+    entities: tuple[str, ...],
+    *,
+    target_entities: tuple[str, ...] = (),
+    style: str = "default",
+) -> str:
     chunk_lines = []
     for index, chunk in enumerate(chunks, start=1):
         chunk_lines.append(
@@ -157,12 +226,21 @@ Text:
 {chunk['text']}"""
         )
     entity_lines = "\n".join(f"- {entity}" for entity in entities)
+    target_lines = "\n".join(f"- {entity}" for entity in target_entities)
+    target_block = f"\n\nFocus entities for the question:\n{target_lines}" if target_entities else ""
     return f"""Cited source chunks:
 
 {chr(10).join(chunk_lines)}
 
 Path entities:
-{entity_lines}"""
+{entity_lines}{target_block}{style_suffix(style)}"""
+
+
+def style_suffix(style: str) -> str:
+    instruction = STYLE_INSTRUCTIONS.get(style, "")
+    if not instruction:
+        return ""
+    return f"\n\n{instruction}"
 
 
 def relation_system_prompt(combo_size: int) -> str:
