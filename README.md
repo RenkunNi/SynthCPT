@@ -88,15 +88,35 @@ Useful controls:
 
 Use `--mode both` to generate both single-document and cross-document rows into the same output JSONL.
 
-### 5. Write Synthetic JSONL
+### 5. Build SoG-lite Graph Paths
+
+In `sog-lite` mode, the pipeline splits documents into markdown sections or paragraph chunks, assigns selected entities to each chunk, builds a section-level entity graph, samples graph paths, and asks the LLM to synthesize a grounded long-context document from the path.
+
+This is a practical, dependency-free version of Synthesize-on-Graph style path sampling:
+
+- nodes: document sections / paragraphs
+- edges: shared selected entities
+- paths: multi-section, preferably cross-document context chains
+
+Useful controls:
+
+- `--mode sog-lite`
+- `--sog-path-length 3`
+- `--sog-max-paths 1000`
+- `--sog-max-section-chars 1800`
+
+Use `--mode all` to generate single-document, cross-document, and SoG-lite rows into the same output JSONL.
+
+### 6. Write Synthetic JSONL
 
 Generated rows are appended to `--output`. Resume is automatic:
 
 - single-document rows resume by `relation_id`
 - cross-document rows resume by `graph_id`
+- SoG-lite rows resume by `path_id`
 - rows containing `error` are retried
 
-### 6. Evaluate Before Training
+### 7. Evaluate Before Training
 
 The `evaluate` command scores generated rows before any model training. It writes all scores under `evaluate/` by default:
 
@@ -119,7 +139,7 @@ entigraph generate \
   --provider local \
   --base-url http://localhost:8000/v1 \
   --model meta-llama/Llama-3.1-70B-Instruct \
-  --mode both \
+  --mode all \
   --max-workers 8 \
   --max-in-flight 32 \
   --max-entities 60 \
@@ -127,7 +147,9 @@ entigraph generate \
   --combo-sizes 2,3 \
   --max-combos-per-doc 5000 \
   --sample-combos \
-  --cross-doc-max-pairs 10000
+  --cross-doc-max-pairs 10000 \
+  --sog-path-length 3 \
+  --sog-max-paths 10000
 ```
 
 The default local API key is `EMPTY`, matching common vLLM setups. Set `VLLM_API_KEY` or pass `--api-key` if your server requires one.
@@ -146,7 +168,7 @@ entigraph generate \
   --provider openai \
   --model gpt-4.1 \
   --json-mode \
-  --mode both \
+  --mode all \
   --max-workers 4 \
   --max-entities 60 \
   --entity-selection-strategy hybrid \
@@ -173,10 +195,11 @@ The `examples/` directory has a tiny wiki-like corpus about early computing. It 
 
 ```bash
 python examples/run_offline_wiki_pipeline.py \
-  --mode both \
+  --mode all \
   --combo-sizes 2 \
   --max-combos-per-doc 2 \
-  --cross-doc-max-pairs 4
+  --cross-doc-max-pairs 4 \
+  --sog-max-paths 4
 ```
 
 Inspect single-document and cross-document opportunities:
@@ -265,6 +288,7 @@ Evaluation row:
 
 - Use `single-doc` for the paper-faithful EntiGraph baseline.
 - Use `cross-doc` separately when you want broader document-level graph synthesis.
+- Use `sog-lite` when you want long-context graph-path synthesis from section-level chunks.
 - The pair/triple space grows quickly: all pairs are `O(n^2)`, triples are `O(n^3)`.
 - To mirror the paper's practical setup, run all pairs plus sampled triplets.
 - Keep source text in prompts to reduce hallucination.

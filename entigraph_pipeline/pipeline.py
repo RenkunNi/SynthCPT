@@ -15,16 +15,19 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Protocol
 
 from .entity_selection import select_entities_for_records
+from .graph_paths import SectionNode, build_section_nodes, path_entities, sample_graph_paths, shared_path_entities
 from .io import append_jsonl, read_completed_keys, read_jsonl
 from .llm import OpenAICompatibleClient
 from .progress import ProgressBar
 from .prompts import (
     CROSS_DOCUMENT_SYSTEM_PROMPT,
     ENTITY_SYSTEM_PROMPT,
+    SOG_LITE_SYSTEM_PROMPT,
     cross_document_user_prompt,
     document_user_prompt,
     relation_system_prompt,
     relation_user_prompt,
+    sog_lite_user_prompt,
 )
 from .titles import infer_title_from_text
 
@@ -61,6 +64,9 @@ class EntiGraphConfig:
     cross_doc_max_shared_entities: int = 12
     cross_doc_max_pairs: int | None = None
     cross_doc_sample_pairs: bool = False
+    sog_path_length: int = 3
+    sog_max_paths: int | None = 1000
+    sog_max_section_chars: int = 1800
     random_seed: int = 13
     max_workers: int = 8
     entity_temperature: float = 0.0
@@ -125,6 +131,17 @@ class CrossDocumentTask:
         return stable_id("cross-doc", doc_ids[0], hashes[doc_ids[0]], doc_ids[1], hashes[doc_ids[1]], entity_key)
 
 
+@dataclass(frozen=True)
+class SogLitePathTask:
+    path: tuple[SectionNode, ...]
+    entities: tuple[str, ...]
+    shared_entities: tuple[str, ...]
+
+    @property
+    def path_id(self) -> str:
+        return stable_id("sog-lite", *[node.section_id for node in self.path], "|".join(self.entities))
+
+
 class EntiGraphPipeline:
     def __init__(self, config: EntiGraphConfig, client: ChatClient):
         self.config = config
@@ -133,14 +150,15 @@ class EntiGraphPipeline:
         self._output_lock = threading.Lock()
 
     def run(self) -> dict[str, int]:
-        if self.config.mode not in {"single-doc", "cross-doc", "both"}:
-            raise ValueError("mode must be one of: single-doc, cross-doc, both")
+        if self.config.mode not in {"single-doc", "cross-doc", "sog-lite", "both", "all"}:
+            raise ValueError("mode must be one of: single-doc, cross-doc, sog-lite, both, all")
         docs = list(self.iter_documents())
         entity_records = self.ensure_entities(docs)
         entity_records, entity_selection_stats = self.select_entity_records(docs, entity_records)
         relation_stats = empty_generation_stats("relations")
         cross_doc_stats = empty_generation_stats("cross_doc")
-        if self.config.mode in {"single-doc", "both"}:
+        sog_lite_stats = empty_generation_stats("sog_lite")
+        if self.config.mode in {"single-doc", "both", "all"}:
             relation_total = self.count_relation_tasks(docs, entity_records) if self.config.show_progress else None
             relation_stats = self._run_generation_tasks(
                 self.iter_relation_tasks(docs, entity_records),
@@ -150,7 +168,7 @@ class EntiGraphPipeline:
                 prefix="relations",
                 total=relation_total,
             )
-        if self.config.mode in {"cross-doc", "both"}:
+        if self.config.mode in {"cross-doc", "both", "all"}:
             cross_doc_total = self.count_cross_document_tasks(docs, entity_records) if self.config.show_progress else None
             cross_doc_stats = self._run_generation_tasks(
                 self.iter_cross_document_tasks(docs, entity_records),
@@ -160,6 +178,16 @@ class EntiGraphPipeline:
                 prefix="cross_doc",
                 total=cross_doc_total,
             )
+        if self.config.mode in {"sog-lite", "all"}:
+            sog_lite_total = self.count_sog_lite_tasks(docs, entity_records) if self.config.show_progress else None
+            sog_lite_stats = self._run_generation_tasks(
+                self.iter_sog_lite_tasks(docs, entity_records),
+                completed_key="path_id",
+                task_key=lambda task: task.path_id,
+                generate=lambda task: self.generate_sog_lite(task),
+                prefix="sog_lite",
+                total=sog_lite_total,
+            )
         return {
             "documents": len(docs),
             "entity_records": len(entity_records),
@@ -168,6 +196,7 @@ class EntiGraphPipeline:
             "entities_selected": entity_selection_stats.selected_total,
             **relation_stats,
             **cross_doc_stats,
+            **sog_lite_stats,
         }
 
     def _run_generation_tasks(
@@ -182,7 +211,11 @@ class EntiGraphPipeline:
     ) -> dict[str, int]:
         completed = read_completed_keys(self.config.output_path, completed_key) if self.config.resume else set()
         max_in_flight = self.config.max_in_flight or max(1, self.config.max_workers * 4)
-        label = "generate cross-doc" if prefix == "cross_doc" else "generate relations"
+        labels = {
+            "cross_doc": "generate cross-doc",
+            "sog_lite": "generate SoG-lite",
+        }
+        label = labels.get(prefix, "generate relations")
         with ProgressBar(label, total, enabled=self.config.show_progress) as progress:
             stats = self._run_generation_tasks_with_progress(
                 tasks,
@@ -469,6 +502,34 @@ class EntiGraphPipeline:
     ) -> int:
         return sum(1 for _ in self.iter_cross_document_tasks(docs, entity_records))
 
+    def iter_sog_lite_tasks(
+        self,
+        docs: list[SourceDocument],
+        entity_records: dict[str, EntityRecord],
+    ) -> Iterable[SogLitePathTask]:
+        nodes = build_section_nodes(
+            docs,
+            entity_records,
+            max_section_chars=self.config.sog_max_section_chars,
+        )
+        paths = sample_graph_paths(
+            nodes,
+            path_length=self.config.sog_path_length,
+            max_paths=self.config.sog_max_paths,
+        )
+        for path in paths:
+            entities = path_entities(path)
+            if not entities:
+                continue
+            yield SogLitePathTask(path=path, entities=entities, shared_entities=shared_path_entities(path))
+
+    def count_sog_lite_tasks(
+        self,
+        docs: list[SourceDocument],
+        entity_records: dict[str, EntityRecord],
+    ) -> int:
+        return sum(1 for _ in self.iter_sog_lite_tasks(docs, entity_records))
+
     def generate_relation(self, task: RelationTask) -> dict[str, Any]:
         system_prompt = relation_system_prompt(len(task.entities))
         messages = [
@@ -532,6 +593,48 @@ class EntiGraphPipeline:
         }
         if self.config.include_source_text:
             base["source_texts"] = [task.doc_a.text, task.doc_b.text]
+        try:
+            text = self.client.chat(
+                messages,
+                temperature=self.config.relation_temperature,
+                max_tokens=self.config.relation_max_tokens,
+            )
+            return {**base, "text": text}
+        except Exception as exc:
+            return {**base, "text": "", "error": str(exc)}
+
+    def generate_sog_lite(self, task: SogLitePathTask) -> dict[str, Any]:
+        chunks = tuple(
+            {
+                "section_id": node.section_id,
+                "doc_id": node.doc_id,
+                "doc_title": node.doc_title,
+                "section_title": node.section_title,
+                "text": node.text,
+            }
+            for node in task.path
+        )
+        messages = [
+            {"role": "system", "content": SOG_LITE_SYSTEM_PROMPT},
+            {"role": "user", "content": sog_lite_user_prompt(chunks, task.entities)},
+        ]
+        base = {
+            "path_id": task.path_id,
+            "doc_ids": list(dict.fromkeys(node.doc_id for node in task.path)),
+            "source_indices": list(dict.fromkeys(node.source_index for node in task.path)),
+            "section_ids": [node.section_id for node in task.path],
+            "titles": list(dict.fromkeys(node.doc_title for node in task.path)),
+            "section_titles": [node.section_title for node in task.path],
+            "entities": list(task.entities),
+            "shared_entities": list(task.shared_entities),
+            "path_length": len(task.path),
+            "prompt_name": "sog_lite_graph_path",
+            "generation_mode": "sog_lite",
+            "task_type": "graph_path_synthesis",
+            **self.config.metadata,
+        }
+        if self.config.include_source_text:
+            base["source_chunks"] = list(chunks)
         try:
             text = self.client.chat(
                 messages,

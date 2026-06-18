@@ -46,9 +46,9 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--json-mode", action="store_true", help="Ask API for JSON objects during entity extraction.")
     generate.add_argument(
         "--mode",
-        choices=["single-doc", "cross-doc", "both"],
+        choices=["single-doc", "cross-doc", "sog-lite", "both", "all"],
         default="single-doc",
-        help="Generate paper-style single-document relations, cross-document graph rows, or both.",
+        help="Generate single-doc, cross-doc, SoG-lite graph paths, both single/cross, or all modes.",
     )
     generate.add_argument("--combo-sizes", default="2,3", help="Comma-separated entity combination sizes.")
     generate.add_argument("--max-docs", type=int, default=None)
@@ -65,6 +65,9 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--cross-doc-max-shared-entities", type=int, default=12)
     generate.add_argument("--cross-doc-max-pairs", type=int, default=None)
     generate.add_argument("--cross-doc-sample-pairs", action="store_true")
+    generate.add_argument("--sog-path-length", type=int, default=3)
+    generate.add_argument("--sog-max-paths", type=int, default=1000)
+    generate.add_argument("--sog-max-section-chars", type=int, default=1800)
     generate.add_argument("--random-seed", type=int, default=13)
     generate.add_argument("--max-workers", type=int, default=8)
     generate.add_argument("--max-in-flight", type=int, default=None, help="Bound queued LLM requests; defaults to 4x workers.")
@@ -118,6 +121,9 @@ def run_generate(args: argparse.Namespace) -> int:
         cross_doc_max_shared_entities=args.cross_doc_max_shared_entities,
         cross_doc_max_pairs=args.cross_doc_max_pairs,
         cross_doc_sample_pairs=args.cross_doc_sample_pairs,
+        sog_path_length=args.sog_path_length,
+        sog_max_paths=args.sog_max_paths,
+        sog_max_section_chars=args.sog_max_section_chars,
         random_seed=args.random_seed,
         max_workers=args.max_workers,
         max_in_flight=args.max_in_flight,
@@ -138,7 +144,7 @@ def run_generate(args: argparse.Namespace) -> int:
     client = OpenAICompatibleClient(llm_config)
     stats = EntiGraphPipeline(pipeline_config, client).run()
     print(json.dumps(stats, indent=2, sort_keys=True))
-    return 0 if stats["relations_failed"] == 0 and stats["cross_doc_failed"] == 0 else 1
+    return 0 if stats["relations_failed"] == 0 and stats["cross_doc_failed"] == 0 and stats["sog_lite_failed"] == 0 else 1
 
 
 def run_evaluate(args: argparse.Namespace) -> int:

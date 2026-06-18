@@ -466,6 +466,8 @@ def render_report(summary: dict[str, Any], evaluations: list[dict[str, Any]]) ->
 
 def generation_mode(row: dict[str, Any]) -> str:
     mode = row.get("generation_mode")
+    if mode == "sog_lite" or "path_id" in row:
+        return "sog_lite"
     if mode == "cross_doc" or "graph_id" in row:
         return "cross_doc"
     return "single_doc"
