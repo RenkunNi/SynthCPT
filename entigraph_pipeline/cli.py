@@ -10,6 +10,7 @@ from .entity_selection import ENTITY_SELECTION_STRATEGIES
 from .evaluator import EntiGraphEvaluator, EvaluationConfig
 from .llm import LLMConfig, OpenAICompatibleClient
 from .pipeline import EntiGraphConfig, EntiGraphPipeline
+from .prompts import GENERATION_STYLES
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -46,9 +47,9 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--json-mode", action="store_true", help="Ask API for JSON objects during entity extraction.")
     generate.add_argument(
         "--mode",
-        choices=["single-doc", "cross-doc", "sog-lite", "longfaith-qa", "both", "all"],
+        choices=["single-doc", "cross-doc", "sog-lite", "long-context", "longfaith-qa", "both", "all"],
         default="single-doc",
-        help="Generate single-doc, cross-doc, SoG-lite graph paths, LongFaith-style QA, both single/cross, or all modes.",
+        help="Generate single-doc, cross-doc, SoG-lite graph paths, long-context graph synthesis, LongFaith-style QA, both single/cross, or all modes.",
     )
     generate.add_argument("--combo-sizes", default="2,3", help="Comma-separated entity combination sizes.")
     generate.add_argument("--max-docs", type=int, default=None)
@@ -68,6 +69,18 @@ def build_parser() -> argparse.ArgumentParser:
     generate.add_argument("--sog-path-length", type=int, default=3)
     generate.add_argument("--sog-max-paths", type=int, default=1000)
     generate.add_argument("--sog-max-section-chars", type=int, default=1800)
+    generate.add_argument("--sog-path-strategy", choices=["dfs", "bridge", "coverage"], default="dfs")
+    generate.add_argument("--sog-candidate-multiplier", type=int, default=8)
+    generate.add_argument("--sog-min-shared-entities", type=int, default=0)
+    generate.add_argument(
+        "--generation-styles",
+        type=parse_generation_styles,
+        default=("default",),
+        help=f"Comma-separated style variants for graph modes. Choices: {', '.join(GENERATION_STYLES)}",
+    )
+    generate.add_argument("--long-context-paths-per-example", type=int, default=3)
+    generate.add_argument("--long-context-max-examples", type=int, default=100)
+    generate.add_argument("--long-context-max-chars", type=int, default=6000)
     generate.add_argument("--random-seed", type=int, default=13)
     generate.add_argument("--max-workers", type=int, default=8)
     generate.add_argument("--max-in-flight", type=int, default=None, help="Bound queued LLM requests; defaults to 4x workers.")
@@ -124,6 +137,13 @@ def run_generate(args: argparse.Namespace) -> int:
         sog_path_length=args.sog_path_length,
         sog_max_paths=args.sog_max_paths,
         sog_max_section_chars=args.sog_max_section_chars,
+        sog_path_strategy=args.sog_path_strategy,
+        sog_candidate_multiplier=args.sog_candidate_multiplier,
+        sog_min_shared_entities=args.sog_min_shared_entities,
+        generation_styles=args.generation_styles,
+        long_context_paths_per_example=args.long_context_paths_per_example,
+        long_context_max_examples=args.long_context_max_examples,
+        long_context_max_chars=args.long_context_max_chars,
         random_seed=args.random_seed,
         max_workers=args.max_workers,
         max_in_flight=args.max_in_flight,
@@ -149,6 +169,7 @@ def run_generate(args: argparse.Namespace) -> int:
         if stats["relations_failed"] == 0
         and stats["cross_doc_failed"] == 0
         and stats["sog_lite_failed"] == 0
+        and stats["long_context_failed"] == 0
         and stats["longfaith_qa_failed"] == 0
         else 1
     )
@@ -185,6 +206,18 @@ def parse_combo_sizes(value: str) -> tuple[int, ...]:
     if not sizes:
         raise argparse.ArgumentTypeError("at least one combo size is required")
     return tuple(sizes)
+
+
+def parse_generation_styles(value: str) -> tuple[str, ...]:
+    styles = tuple(part.strip() for part in value.split(",") if part.strip())
+    if not styles:
+        raise argparse.ArgumentTypeError("at least one generation style is required")
+    invalid = sorted(set(styles) - set(GENERATION_STYLES))
+    if invalid:
+        raise argparse.ArgumentTypeError(
+            f"invalid generation style(s): {', '.join(invalid)}; choices are: {', '.join(GENERATION_STYLES)}"
+        )
+    return styles
 
 
 if __name__ == "__main__":

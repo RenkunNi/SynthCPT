@@ -49,24 +49,43 @@ class OfflineWikiClient:
                 "Together, the pages describe how mechanical calculation, programmable control, and interpretive notes formed a connected historical graph."
             )
         if "faithful long-context qa" in system.lower():
-            entities = parse_bullet_block(user, "Path entities:")
+            target_entities = parse_bullet_block(user, "Focus entities for the question:")
+            entities = target_entities or parse_bullet_block(user, "Path entities:")[:3]
+            entity_text = ", ".join(entities)
+            sections = parse_section_titles(user)
+            evidence = " and ".join(sections[:2]) if len(sections) >= 2 else "the cited chunks"
+            style = parse_style(user)
             return json.dumps(
                 {
-                    "question": f"How do {entities[0]} and {entities[1]} connect across the cited chunks?",
-                    "answer": f"{entities[0]} and {entities[1]} are connected through the supplied early-computing context.",
-                    "reasoning": f"According to [1], {entities[0]} appears in the graph path. According to [2], {entities[1]} provides a related chunk in the same path.",
+                    "question": f"How do {entity_text} connect across {evidence}?",
+                    "answer": f"{entity_text} are connected through {evidence} in the supplied early-computing context.",
+                    "reasoning": f"According to [1], {entities[0]} appears in {sections[0] if sections else 'the first chunk'}. According to [2], {entities[1]} provides related evidence in {sections[1] if len(sections) > 1 else 'the second chunk'}. The {style} answer keeps {entity_text} as the focus.",
                     "support_ids": ["1", "2"],
                 }
             )
+        if "long-context graph synthesizer" in system.lower():
+            entities = parse_bullet_block(user, "Global entities:")
+            sections = parse_section_titles(user)
+            style = parse_style(user)
+            return (
+                "### Long-context graph map\n"
+                f"The connected paths combine chunks such as {', '.join(sections[:4])} from early-computing pages.\n"
+                "### Cross-path evidence\n"
+                f"The shared evidence centers on {', '.join(entities[:4])} and links people, machines, notes, and control mechanisms.\n"
+                "### Integrated long-context synthesis\n"
+                f"Across the grouped graph paths, this {style} sample describes how mathematical interpretation, machine design, and programmable control form a grounded long-context training example."
+            )
         if "graph-path" in system.lower():
             entities = parse_bullet_block(user, "Path entities:")
+            sections = parse_section_titles(user)
+            style = parse_style(user)
             return (
                 "### Graph path context\n"
-                "The selected chunks form a multi-section path through early-computing entities.\n"
+                f"The selected chunks pass through {', '.join(sections[:3])} in the early-computing fixture.\n"
                 "### Path entities\n"
                 + ", ".join(entities)
                 + "\n### Grounded synthesis\n"
-                "Across the path, the entities connect people, machines, source texts, and control mechanisms using only the supplied chunks."
+                f"Across the path, this {style} synthesis connects people, machines, source texts, and control mechanisms using only the supplied chunks."
             )
         title = parse_title(user)
         entities = parse_bullet_block(user, "Entities:")
@@ -82,12 +101,16 @@ def main() -> int:
     parser.add_argument("--fixture", type=Path, default=DEFAULT_FIXTURE)
     parser.add_argument("--output", type=Path, default=Path("/tmp/wiki_synth_offline.jsonl"))
     parser.add_argument("--entity-cache", type=Path, default=Path("/tmp/wiki_entities_offline.jsonl"))
-    parser.add_argument("--mode", choices=["single-doc", "cross-doc", "sog-lite", "longfaith-qa", "both", "all"], default="all")
+    parser.add_argument("--mode", choices=["single-doc", "cross-doc", "sog-lite", "long-context", "longfaith-qa", "both", "all"], default="all")
     parser.add_argument("--combo-sizes", default="2")
     parser.add_argument("--max-combos-per-doc", type=int, default=2)
     parser.add_argument("--cross-doc-max-pairs", type=int, default=4)
     parser.add_argument("--sog-max-paths", type=int, default=4)
     parser.add_argument("--sog-path-length", type=int, default=3)
+    parser.add_argument("--sog-path-strategy", choices=["dfs", "bridge", "coverage"], default="bridge")
+    parser.add_argument("--generation-styles", default="default")
+    parser.add_argument("--long-context-paths-per-example", type=int, default=2)
+    parser.add_argument("--long-context-max-examples", type=int, default=4)
     args = parser.parse_args()
 
     for path in (args.output, args.entity_cache):
@@ -104,6 +127,10 @@ def main() -> int:
         cross_doc_max_pairs=args.cross_doc_max_pairs,
         sog_max_paths=args.sog_max_paths,
         sog_path_length=args.sog_path_length,
+        sog_path_strategy=args.sog_path_strategy,
+        generation_styles=parse_styles(args.generation_styles),
+        long_context_paths_per_example=args.long_context_paths_per_example,
+        long_context_max_examples=args.long_context_max_examples,
         max_workers=2,
         max_in_flight=4,
         metadata={"provider": "offline", "model": "fixture", "generator": "offline-wiki-example"},
@@ -151,8 +178,32 @@ def parse_bullet_block(prompt: str, marker: str) -> list[str]:
     return values
 
 
+def parse_section_titles(prompt: str) -> list[str]:
+    sections = []
+    for line in prompt.splitlines():
+        if line.startswith("Section: "):
+            sections.append(line.removeprefix("Section: ").strip())
+    return sections
+
+
+def parse_style(prompt: str) -> str:
+    if "Style: emphasize supported similarities" in prompt:
+        return "contrastive"
+    if "Style: organize the response chronologically" in prompt:
+        return "timeline"
+    if "Style: emphasize supported mechanisms" in prompt:
+        return "causal"
+    if "Style: write an integrated synthesis" in prompt:
+        return "synthesis"
+    return "default"
+
+
 def parse_combo_sizes(value: str) -> tuple[int, ...]:
     return tuple(int(part.strip()) for part in value.split(",") if part.strip())
+
+
+def parse_styles(value: str) -> tuple[str, ...]:
+    return tuple(part.strip() for part in value.split(",") if part.strip())
 
 
 if __name__ == "__main__":

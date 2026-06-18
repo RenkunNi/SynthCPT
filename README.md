@@ -104,10 +104,32 @@ Useful controls:
 - `--sog-path-length 3`
 - `--sog-max-paths 1000`
 - `--sog-max-section-chars 1800`
+- `--sog-path-strategy dfs|bridge|coverage`
+- `--sog-min-shared-entities 1`
 
-Use `--mode all` to generate single-document, cross-document, and SoG-lite rows into the same output JSONL.
+Path strategy choices:
 
-### 6. Generate LongFaith-style QA
+- `dfs`: compatibility mode; returns the first deterministic graph paths.
+- `bridge`: ranks paths with more shared entities, cross-document edges, and bridge evidence.
+- `coverage`: ranks paths that cover more documents and entities.
+
+Each SoG-lite row includes `path_metrics`, `path_strategy`, `source_sha256`, and `style`, so you can inspect why a path was selected and safely resume after source text changes.
+
+### 6. Generate Long-context Graph Rows
+
+In `long-context` mode, the pipeline groups multiple SoG-lite graph paths into one larger grounded context and asks the LLM to synthesize across paths. This is useful when you want long CPT examples that cover several connected sections instead of one short path.
+
+Useful controls:
+
+- `--mode long-context`
+- `--long-context-paths-per-example 3`
+- `--long-context-max-examples 100`
+- `--long-context-max-chars 6000`
+- `--sog-path-strategy bridge`
+
+Each row includes `long_context_id`, `path_ids`, `path_count`, `chunk_count`, `path_metrics`, and the same source hashes used by SoG-lite rows.
+
+### 7. Generate LongFaith-style QA
 
 In `longfaith-qa` mode, the pipeline reuses SoG-lite graph paths as cited support contexts. It asks the LLM to generate one question, answer, and cited reasoning chain grounded in the supplied chunks.
 
@@ -118,6 +140,7 @@ This produces instruction-style long-context data rather than plain CPT prose. E
 - `answer`
 - `reasoning`
 - `support_ids`
+- `target_entities`: the entities the QA row is expected to mention and reason about
 - `text`: a combined context/question/answer/reasoning field for evaluation or training
 
 Useful controls are shared with SoG-lite:
@@ -127,19 +150,45 @@ Useful controls are shared with SoG-lite:
 - `--sog-max-paths 1000`
 - `--sog-max-section-chars 1800`
 
-Use `--mode all` to generate single-document, cross-document, SoG-lite, and LongFaith-style QA rows.
+Use `--mode all` to generate single-document, cross-document, SoG-lite, long-context, and LongFaith-style QA rows.
 
-### 7. Write Synthetic JSONL
+### 8. Multi-style Outputs
+
+Graph modes support multiple prompt styles with `--generation-styles`. Styles are generated as separate rows with style-specific IDs:
+
+- `default`
+- `synthesis`
+- `contrastive`
+- `timeline`
+- `causal`
+
+Example:
+
+```bash
+entigraph generate \
+  --input data/source.jsonl \
+  --output data/graph_styles.jsonl \
+  --entity-cache data/entities.jsonl \
+  --provider local \
+  --base-url http://localhost:8000/v1 \
+  --model meta-llama/Llama-3.1-70B-Instruct \
+  --mode all \
+  --sog-path-strategy bridge \
+  --generation-styles default,contrastive,causal
+```
+
+### 9. Write Synthetic JSONL
 
 Generated rows are appended to `--output`. Resume is automatic:
 
 - single-document rows resume by `relation_id`
 - cross-document rows resume by `graph_id`
-- SoG-lite rows resume by `path_id`
+- SoG-lite rows resume by source-hash-sensitive `path_id`
+- long-context rows resume by `long_context_id`
 - LongFaith-style QA rows resume by `qa_id`
 - rows containing `error` are retried
 
-### 8. Evaluate Before Training
+### 10. Evaluate Before Training
 
 The `evaluate` command scores generated rows before any model training. It writes all scores under `evaluate/` by default:
 
@@ -172,7 +221,9 @@ entigraph generate \
   --sample-combos \
   --cross-doc-max-pairs 10000 \
   --sog-path-length 3 \
-  --sog-max-paths 10000
+  --sog-max-paths 10000 \
+  --sog-path-strategy bridge \
+  --generation-styles default,synthesis
 ```
 
 The default local API key is `EMPTY`, matching common vLLM setups. Set `VLLM_API_KEY` or pass `--api-key` if your server requires one.
@@ -222,7 +273,9 @@ python examples/run_offline_wiki_pipeline.py \
   --combo-sizes 2 \
   --max-combos-per-doc 2 \
   --cross-doc-max-pairs 4 \
-  --sog-max-paths 4
+  --sog-max-paths 4 \
+  --sog-path-strategy bridge \
+  --generation-styles default,contrastive
 ```
 
 Inspect single-document and cross-document opportunities:
@@ -312,6 +365,7 @@ Evaluation row:
 - Use `single-doc` for the paper-faithful EntiGraph baseline.
 - Use `cross-doc` separately when you want broader document-level graph synthesis.
 - Use `sog-lite` when you want long-context graph-path synthesis from section-level chunks.
+- Use `long-context` when you want multi-path, longer CPT examples from the same graph.
 - Use `longfaith-qa` when you want cited long-context instruction data instead of CPT prose.
 - The pair/triple space grows quickly: all pairs are `O(n^2)`, triples are `O(n^3)`.
 - To mirror the paper's practical setup, run all pairs plus sampled triplets.
