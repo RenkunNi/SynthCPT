@@ -59,6 +59,19 @@ Use clear sections:
 ### Cross-document relations
 ### Integrated synthesis"""
 
+SOG_LITE_SYSTEM_PROMPT = """You will act as a graph-path knowledge synthesizer. The user will provide a path of source chunks selected from a section-level entity graph. Generate a synthetic continued-pretraining document that connects the chunks into one coherent, grounded explanation.
+
+Requirements:
+1. Use only facts supported by the supplied chunks.
+2. Explain how the path entities connect the chunks.
+3. Prefer cross-chunk relationships, chronology, contrasts, and causal or conceptual links when supported.
+4. Do not invent details, dates, names, or claims not present in the chunks.
+
+Use clear sections:
+### Graph path context
+### Path entities
+### Grounded synthesis"""
+
 
 def document_user_prompt(text: str, title: str) -> str:
     return f"""Title: {title}
@@ -97,6 +110,24 @@ Article B:
 {text_b}
 
 Shared entities:
+{entity_lines}"""
+
+
+def sog_lite_user_prompt(chunks: tuple[dict[str, str], ...], entities: tuple[str, ...]) -> str:
+    chunk_lines = []
+    for index, chunk in enumerate(chunks, start=1):
+        chunk_lines.append(
+            f"""[{index}] Document: {chunk['doc_title']}
+Section: {chunk['section_title']}
+Text:
+{chunk['text']}"""
+        )
+    entity_lines = "\n".join(f"- {entity}" for entity in entities)
+    return f"""Source chunks:
+
+{chr(10).join(chunk_lines)}
+
+Path entities:
 {entity_lines}"""
 
 

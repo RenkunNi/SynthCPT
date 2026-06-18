@@ -48,6 +48,16 @@ class OfflineWikiClient:
                 "### Integrated synthesis\n"
                 "Together, the pages describe how mechanical calculation, programmable control, and interpretive notes formed a connected historical graph."
             )
+        if "graph-path" in system.lower():
+            entities = parse_bullet_block(user, "Path entities:")
+            return (
+                "### Graph path context\n"
+                "The selected chunks form a multi-section path through early-computing entities.\n"
+                "### Path entities\n"
+                + ", ".join(entities)
+                + "\n### Grounded synthesis\n"
+                "Across the path, the entities connect people, machines, source texts, and control mechanisms using only the supplied chunks."
+            )
         title = parse_title(user)
         entities = parse_bullet_block(user, "Entities:")
         return (
@@ -62,10 +72,12 @@ def main() -> int:
     parser.add_argument("--fixture", type=Path, default=DEFAULT_FIXTURE)
     parser.add_argument("--output", type=Path, default=Path("/tmp/wiki_synth_offline.jsonl"))
     parser.add_argument("--entity-cache", type=Path, default=Path("/tmp/wiki_entities_offline.jsonl"))
-    parser.add_argument("--mode", choices=["single-doc", "cross-doc", "both"], default="both")
+    parser.add_argument("--mode", choices=["single-doc", "cross-doc", "sog-lite", "both", "all"], default="all")
     parser.add_argument("--combo-sizes", default="2")
     parser.add_argument("--max-combos-per-doc", type=int, default=2)
     parser.add_argument("--cross-doc-max-pairs", type=int, default=4)
+    parser.add_argument("--sog-max-paths", type=int, default=4)
+    parser.add_argument("--sog-path-length", type=int, default=3)
     args = parser.parse_args()
 
     for path in (args.output, args.entity_cache):
@@ -80,6 +92,8 @@ def main() -> int:
         combo_sizes=parse_combo_sizes(args.combo_sizes),
         max_combos_per_doc=args.max_combos_per_doc,
         cross_doc_max_pairs=args.cross_doc_max_pairs,
+        sog_max_paths=args.sog_max_paths,
+        sog_path_length=args.sog_path_length,
         max_workers=2,
         max_in_flight=4,
         metadata={"provider": "offline", "model": "fixture", "generator": "offline-wiki-example"},

@@ -58,6 +58,21 @@ After a run, summarize generated output:
 python examples/compare_wiki_fixture.py --generated /tmp/wiki_synth.jsonl
 ```
 
+Compare quality signals across multiple generation methods:
+
+```bash
+python examples/compare_generation_quality.py \
+  baseline=/tmp/wiki_synth_offline.jsonl \
+  sog-lite=/tmp/wiki_sog_lite.jsonl \
+  longfaith-qa=/tmp/wiki_longfaith_qa.jsonl
+```
+
+The comparison helper is dependency-free and reports local grounding signals:
+entity support, entity mentions, unsupported proper nouns, source 5-gram
+overlap, relation wording, length, duplicate texts, and warning counts. It can
+be run now for the single-document/cross-document baseline and reused for
+SoG-lite graph-path or LongFaith-style QA outputs once those JSONL files exist.
+
 If you want the helper to use extracted entities instead of the fixture metadata:
 
 ```bash

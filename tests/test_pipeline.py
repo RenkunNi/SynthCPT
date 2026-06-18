@@ -5,6 +5,7 @@ from pathlib import Path
 
 from entigraph_pipeline.entity_selection import select_entities
 from entigraph_pipeline.evaluator import EntiGraphEvaluator, EvaluationConfig
+from entigraph_pipeline.graph_paths import split_markdown_sections
 from entigraph_pipeline.pipeline import (
     EntiGraphConfig,
     EntiGraphPipeline,
@@ -33,6 +34,8 @@ class FakeClient:
         user = messages[1]["content"]
         if "Shared entities:" in user:
             return "Cross-document synthetic text\n" + user.split("Shared entities:", 1)[1].strip()
+        if "Path entities:" in user:
+            return "SoG-lite synthetic text\n" + user.split("Path entities:", 1)[1].strip()
         return "Synthetic relation text\n" + user.split("Entities:", 1)[1].strip()
 
 
@@ -152,6 +155,60 @@ class PipelineTest(unittest.TestCase):
             self.assertEqual(output_rows[0]["generation_mode"], "cross_doc")
             self.assertEqual(set(output_rows[0]["doc_ids"]), {"ada", "babbage"})
             self.assertIn("Analytical Engine", output_rows[0]["shared_entities"])
+
+    def test_markdown_sections_assign_entities(self):
+        nodes = split_markdown_sections(
+            doc_id="doc",
+            source_index=0,
+            doc_title="Doc",
+            text="# Title\n\n## Engine\nAda Lovelace studied the Analytical Engine.\n\n## Loom\nThe Jacquard loom used cards.",
+            entities=("Ada Lovelace", "Analytical Engine", "Jacquard loom"),
+            max_section_chars=500,
+        )
+        self.assertEqual(len(nodes), 2)
+        self.assertEqual(nodes[0].section_title, "Engine")
+        self.assertEqual(nodes[0].entities, ("Ada Lovelace", "Analytical Engine"))
+
+    def test_sog_lite_mode_generates_graph_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input.jsonl"
+            output_path = root / "out.jsonl"
+            entity_path = root / "entities.jsonl"
+            rows = [
+                {
+                    "id": "ada",
+                    "title": "Ada Lovelace",
+                    "text": "Ada Lovelace wrote notes about the Analytical Engine with Charles Babbage.",
+                },
+                {
+                    "id": "babbage",
+                    "title": "Charles Babbage",
+                    "text": "Charles Babbage designed the Difference Engine and the Analytical Engine.",
+                },
+                {
+                    "id": "engine",
+                    "title": "Analytical Engine",
+                    "text": "Ada Lovelace and Charles Babbage discussed the Analytical Engine.",
+                },
+            ]
+            input_path.write_text("".join(json.dumps(row) + "\n" for row in rows))
+            config = EntiGraphConfig(
+                input_path=input_path,
+                output_path=output_path,
+                entity_cache_path=entity_path,
+                mode="sog-lite",
+                sog_path_length=2,
+                sog_max_paths=2,
+                max_workers=2,
+                show_progress=False,
+            )
+            stats = EntiGraphPipeline(config, FakeClient()).run()
+            self.assertEqual(stats["sog_lite_generated"], 2)
+            output_rows = [json.loads(line) for line in output_path.read_text().splitlines()]
+            self.assertEqual(output_rows[0]["generation_mode"], "sog_lite")
+            self.assertEqual(output_rows[0]["task_type"], "graph_path_synthesis")
+            self.assertIn("path_id", output_rows[0])
 
     def test_failed_output_rows_are_retried_on_resume(self):
         with tempfile.TemporaryDirectory() as tmp:
