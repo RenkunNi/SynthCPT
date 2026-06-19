@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from entigraph_pipeline.context_graph import ContextGraphBuilder, ContextGraphConfig
 from entigraph_pipeline.entity_selection import select_entities
 from entigraph_pipeline.evaluator import EntiGraphEvaluator, EvaluationConfig
 from entigraph_pipeline.graph_paths import split_markdown_sections
@@ -451,6 +452,88 @@ class PipelineTest(unittest.TestCase):
             row = json.loads((output_dir / "rows.jsonl").read_text().splitlines()[0])
             self.assertEqual(row["generated_id"], "qa-1")
             self.assertEqual(row["scores"]["citation_support"], 1.0)
+
+    def test_context_graph_builder_creates_entity_facts_with_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input.jsonl"
+            entity_path = root / "entities.jsonl"
+            graph_path = root / "context_graph.json"
+            input_path.write_text(
+                json.dumps(
+                    {
+                        "id": "ada",
+                        "title": "Ada Lovelace",
+                        "text": "# Ada Lovelace\n\n## Notes\nAda Lovelace wrote Notes about the Analytical Engine with Charles Babbage.",
+                    }
+                )
+                + "\n"
+                + json.dumps(
+                    {
+                        "id": "engine",
+                        "title": "Analytical Engine",
+                        "text": "# Analytical Engine\n\n## Design\nCharles Babbage designed the Analytical Engine.",
+                    }
+                )
+                + "\n"
+            )
+            entity_path.write_text(
+                json.dumps(
+                    {
+                        "doc_id": "ada",
+                        "source_index": 0,
+                        "source_sha256": "h1",
+                        "title": "Ada Lovelace",
+                        "summary": "",
+                        "entities": ["Ada Lovelace", "Analytical Engine", "Charles Babbage", "Notes"],
+                        "raw_response": "{}",
+                    }
+                )
+                + "\n"
+                + json.dumps(
+                    {
+                        "doc_id": "engine",
+                        "source_index": 1,
+                        "source_sha256": "h2",
+                        "title": "Analytical Engine",
+                        "summary": "",
+                        "entities": ["Analytical Engine", "Charles Babbage"],
+                        "raw_response": "{}",
+                    }
+                )
+                + "\n"
+            )
+            summary = ContextGraphBuilder(
+                ContextGraphConfig(
+                    input_path=input_path,
+                    entity_cache_path=entity_path,
+                    output_path=graph_path,
+                    max_section_chars=500,
+                )
+            ).run()
+            graph = json.loads(graph_path.read_text())
+            self.assertEqual(summary["documents"], 2)
+            self.assertGreater(summary["typed_facts"], 0)
+            self.assertGreater(summary["cooccurrence_facts"], 0)
+            self.assertEqual(graph["schema_version"], "entity-context-graph-v1")
+            self.assertGreaterEqual(len(graph["entities"]), 4)
+            self.assertEqual(len(graph["contexts"]), 2)
+            fact = next(
+                row
+                for row in graph["facts"]
+                if {row["head"], row["tail"]} == {"Analytical Engine", "Charles Babbage"}
+            )
+            self.assertEqual(fact["relation"], "co_occurs_with")
+            self.assertGreaterEqual(fact["context_count"], 2)
+            self.assertIn("evidence", fact)
+            self.assertIn("source_sha256", fact["evidence"][0])
+            typed_fact = next(row for row in graph["facts"] if row["edge_type"] == "typed_contextual_fact")
+            self.assertIn("relation_category", typed_fact)
+            self.assertIn(typed_fact["relation_category"], graph["build_config"]["relation_categories"])
+            self.assertIn("confidence", typed_fact)
+            context = graph["contexts"][0]
+            self.assertIn("source_sha256", context)
+            self.assertIn("text", context)
 
 
 if __name__ == "__main__":

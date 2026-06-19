@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
+from .context_graph import ContextGraphBuilder, ContextGraphConfig
 from .entity_selection import ENTITY_SELECTION_STRATEGIES
 from .evaluator import EntiGraphEvaluator, EvaluationConfig
 from .llm import LLMConfig, OpenAICompatibleClient
@@ -20,6 +21,8 @@ def main(argv: list[str] | None = None) -> int:
         return run_generate(args)
     if args.command == "evaluate":
         return run_evaluate(args)
+    if args.command == "build-context-graph":
+        return run_build_context_graph(args)
     parser.print_help()
     return 2
 
@@ -102,6 +105,39 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate.add_argument("--min-overall-score", type=float, default=0.75)
     evaluate.add_argument("--max-unsupported-proper-nouns", type=int, default=2)
     evaluate.add_argument("--max-redundancy-overlap", type=float, default=0.65)
+    graph = subparsers.add_parser(
+        "build-context-graph",
+        help="Build an entity-level context graph from source JSONL and an entity cache.",
+    )
+    graph.add_argument("--input", required=True, type=Path, help="Input JSONL; each row must contain text_key.")
+    graph.add_argument("--entity-cache", required=True, type=Path, help="Entity extraction cache JSONL path.")
+    graph.add_argument("--output", required=True, type=Path, help="Output context graph JSON path.")
+    graph.add_argument("--text-key", default="text")
+    graph.add_argument("--title-key", default="title")
+    graph.add_argument("--id-key", default=None)
+    graph.add_argument("--max-section-chars", type=int, default=1800)
+    graph.add_argument("--min-shared-contexts", type=int, default=1)
+    graph.add_argument("--min-edge-weight", type=float, default=1.0)
+    graph.add_argument("--max-evidence-per-fact", type=int, default=4)
+    graph.add_argument("--max-contexts-per-entity", type=int, default=20)
+    graph.add_argument("--no-context-text", action="store_true", help="Omit raw section text from context nodes.")
+    graph.add_argument("--graph-name", default="entity_context_graph")
+    graph.add_argument(
+        "--typed-facts",
+        choices=["off", "heuristic", "llm"],
+        default="heuristic",
+        help="Add typed semantic facts in addition to co-occurrence facts.",
+    )
+    graph.add_argument("--min-typed-confidence", type=float, default=0.4)
+    graph.add_argument("--max-typed-facts-per-context", type=int, default=12)
+    graph.add_argument("--typed-fact-provider", choices=["local", "openai"], default="local")
+    graph.add_argument("--typed-fact-model", default=None)
+    graph.add_argument("--typed-fact-base-url", default=None)
+    graph.add_argument("--typed-fact-api-key", default=None)
+    graph.add_argument("--typed-fact-api-key-env", default=None)
+    graph.add_argument("--typed-fact-temperature", type=float, default=0.0)
+    graph.add_argument("--typed-fact-max-tokens", type=int, default=2048)
+    graph.add_argument("--typed-fact-json-mode", action="store_true")
     return parser
 
 
@@ -191,6 +227,47 @@ def run_evaluate(args: argparse.Namespace) -> int:
     summary = EntiGraphEvaluator(config).run()
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0 if summary["failed"] == 0 else 1
+
+
+def run_build_context_graph(args: argparse.Namespace) -> int:
+    client = None
+    if args.typed_facts == "llm":
+        if not args.typed_fact_model:
+            raise SystemExit("--typed-fact-model is required when --typed-facts llm")
+        client = OpenAICompatibleClient(
+            LLMConfig(
+                provider=args.typed_fact_provider,
+                model=args.typed_fact_model,
+                base_url=args.typed_fact_base_url,
+                api_key=args.typed_fact_api_key,
+                api_key_env=args.typed_fact_api_key_env,
+                json_mode=args.typed_fact_json_mode,
+            )
+        )
+    config = ContextGraphConfig(
+        input_path=args.input,
+        entity_cache_path=args.entity_cache,
+        output_path=args.output,
+        text_key=args.text_key,
+        title_key=args.title_key or None,
+        id_key=args.id_key,
+        max_section_chars=args.max_section_chars,
+        min_shared_contexts=args.min_shared_contexts,
+        min_edge_weight=args.min_edge_weight,
+        max_evidence_per_fact=args.max_evidence_per_fact,
+        max_contexts_per_entity=args.max_contexts_per_entity,
+        include_context_text=not args.no_context_text,
+        graph_name=args.graph_name,
+        typed_fact_mode=args.typed_facts,
+        min_typed_confidence=args.min_typed_confidence,
+        max_typed_facts_per_context=args.max_typed_facts_per_context,
+        typed_fact_temperature=args.typed_fact_temperature,
+        typed_fact_max_tokens=args.typed_fact_max_tokens,
+        json_mode=args.typed_fact_json_mode,
+    )
+    summary = ContextGraphBuilder(config, client=client).run()
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    return 0
 
 
 def parse_combo_sizes(value: str) -> tuple[int, ...]:

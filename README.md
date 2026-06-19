@@ -199,6 +199,56 @@ The `evaluate` command scores generated rows before any model training. It write
 
 The default quality gate checks selected-entity support, selected-entity mentions, unsupported proper nouns, copying from source text, relation signal, specificity, structure, and length.
 
+### 11. Build an Entity-level Context Graph
+
+The `build-context-graph` command creates a reusable graph artifact inspired by entity-level Context Graphs. It keeps both:
+
+- entity nodes: canonical entity names, aliases, document frequency, context IDs
+- context nodes: source sections/chunks with provenance and selected entities
+- fact edges: entity-to-entity contextual facts with evidence snippets, source hashes, context IDs, document IDs, and weights
+
+This graph is different from the temporary section graph used by SoG-lite. The section graph is rebuilt during generation; the context graph is saved and can be reused for agentic data generation, graph retrieval, hard negatives, and coverage analysis.
+
+```bash
+entigraph build-context-graph \
+  --input data/source.jsonl \
+  --entity-cache data/entities.jsonl \
+  --output data/context_graph.json \
+  --max-section-chars 1800 \
+  --min-shared-contexts 1 \
+  --min-edge-weight 1.0 \
+  --typed-facts heuristic
+```
+
+Useful controls:
+
+- `--no-context-text`: omit raw chunk text if the graph artifact should only carry metadata/evidence snippets.
+- `--min-shared-contexts 2`: keep only stronger entity pairs that appear together in multiple contexts.
+- `--min-edge-weight 2.0`: prune weak edges.
+- `--max-evidence-per-fact 4`: cap evidence snippets per edge.
+- `--typed-facts off|heuristic|llm`: choose whether to add typed facts in addition to `co_occurs_with`.
+- `--min-typed-confidence 0.4`: filter low-confidence typed facts.
+- `--max-typed-facts-per-context 12`: cap typed facts extracted from each context.
+
+Typed fact definition is hybrid:
+
+- `relation_category` is selected from a small controlled set: `created_or_designed_by`, `authored_or_translated_by`, `located_in`, `part_of`, `used_for`, `inspired_by`, `causes_or_enables`, `compares_or_contrasts`, `temporal`, `associated_with`, `other`.
+- `relation` is an open short phrase, such as `designed`, `translated`, `published_account_of`, or `associated_with`.
+
+This gives you stable buckets for analysis while preserving corpus-specific relation wording. Heuristic mode is deterministic and high precision but conservative. LLM mode is better for open-domain typed relations:
+
+```bash
+entigraph build-context-graph \
+  --input data/source.jsonl \
+  --entity-cache data/entities.jsonl \
+  --output data/context_graph_typed.json \
+  --typed-facts llm \
+  --typed-fact-provider local \
+  --typed-fact-base-url http://localhost:8000/v1 \
+  --typed-fact-model meta-llama/Llama-3.1-70B-Instruct \
+  --typed-fact-json-mode
+```
+
 ## Run With Local vLLM
 
 Start a vLLM OpenAI-compatible server separately, then run:
@@ -263,6 +313,17 @@ entigraph evaluate \
 
 The evaluator exits nonzero if any generated row fails the gate, which makes it usable in scripts or CI.
 
+## Build a Context Graph
+
+```bash
+entigraph build-context-graph \
+  --input data/source.jsonl \
+  --entity-cache data/entities.jsonl \
+  --output data/context_graph.json \
+  --max-section-chars 1800 \
+  --min-edge-weight 1.0
+```
+
 ## Offline Example
 
 The `examples/` directory has a tiny wiki-like corpus about early computing. It can run without any external API:
@@ -299,6 +360,7 @@ Small generated samples are included in [examples/generated](examples/generated)
 
 - `wiki_synth_offline_sample.jsonl`
 - `wiki_entities_offline_sample.jsonl`
+- `context_graph_sample.json`
 
 The checked-in evaluation report in [evaluate](evaluate) was produced from the offline sample.
 

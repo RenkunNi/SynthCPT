@@ -41,6 +41,18 @@ entigraph evaluate \
   --output-dir evaluate
 ```
 
+Build the reusable entity-level context graph from the same fixture and entity cache:
+
+```bash
+entigraph build-context-graph \
+  --input examples/wiki_fixture.jsonl \
+  --entity-cache /tmp/wiki_entities_offline.jsonl \
+  --output /tmp/wiki_context_graph.json \
+  --max-section-chars 1800 \
+  --min-edge-weight 1.0 \
+  --typed-facts heuristic
+```
+
 Cross-document mode is available in the real CLI with:
 
 ```bash

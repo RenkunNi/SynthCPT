@@ -1,0 +1,1758 @@
+{
+  "build_config": {
+    "include_context_text": true,
+    "max_contexts_per_entity": 20,
+    "max_evidence_per_fact": 4,
+    "max_section_chars": 1800,
+    "max_typed_facts_per_context": 12,
+    "min_edge_weight": 1.0,
+    "min_shared_contexts": 1,
+    "min_typed_confidence": 0.4,
+    "relation_categories": [
+      "created_or_designed_by",
+      "authored_or_translated_by",
+      "located_in",
+      "part_of",
+      "used_for",
+      "inspired_by",
+      "causes_or_enables",
+      "compares_or_contrasts",
+      "temporal",
+      "associated_with",
+      "other"
+    ],
+    "typed_fact_mode": "heuristic"
+  },
+  "contexts": [
+    {
+      "char_length": 242,
+      "context_id": "wiki-analytical-engine#s0",
+      "doc_id": "wiki-analytical-engine",
+      "doc_title": "Analytical Engine",
+      "entities": [
+        "Analytical Engine",
+        "Charles Babbage",
+        "Ada Lovelace",
+        "Jacquard loom",
+        "London"
+      ],
+      "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+      "source_index": 0,
+      "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723",
+      "text": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London. Ada Lovelace studied the machine and described how punched cards, inspired by the Jacquard loom, could direct symbolic operations."
+    },
+    {
+      "char_length": 220,
+      "context_id": "wiki-ada-lovelace#s0",
+      "doc_id": "wiki-ada-lovelace",
+      "doc_title": "Ada Lovelace",
+      "entities": [
+        "Ada Lovelace",
+        "Analytical Engine",
+        "Charles Babbage",
+        "Luigi Menabrea",
+        "Notes"
+      ],
+      "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+      "source_index": 1,
+      "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73",
+      "text": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes. Her writing connected the engine to mathematics, music, and reusable sequences of operations."
+    },
+    {
+      "char_length": 214,
+      "context_id": "wiki-charles-babbage#s0",
+      "doc_id": "wiki-charles-babbage",
+      "doc_title": "Charles Babbage",
+      "entities": [
+        "Charles Babbage",
+        "Difference Engine",
+        "Analytical Engine",
+        "Royal Astronomical Society",
+        "London"
+      ],
+      "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+      "source_index": 2,
+      "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952",
+      "text": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society. His Difference Engine targeted numerical tables, while the later Analytical Engine sketched a broader programmable machine."
+    },
+    {
+      "char_length": 180,
+      "context_id": "wiki-jacquard-loom#s0",
+      "doc_id": "wiki-jacquard-loom",
+      "doc_title": "Jacquard Loom",
+      "entities": [
+        "Jacquard loom",
+        "punched cards",
+        "Analytical Engine",
+        "textile weaving"
+      ],
+      "section_title": "The Jacquard loom used punched cards to control textile weaving patterns",
+      "source_index": 3,
+      "source_sha256": "7019712391249c7c4d33fb4b1ad70d0b5b0d5cc3dd8b3a8e0340119b340e03cc",
+      "text": "The Jacquard loom used punched cards to control textile weaving patterns. Babbage borrowed the idea of card-directed control when describing the Analytical Engine's store and mill."
+    },
+    {
+      "char_length": 244,
+      "context_id": "wiki-difference-engine#s0",
+      "doc_id": "wiki-difference-engine",
+      "doc_title": "Difference Engine",
+      "entities": [
+        "Difference Engine",
+        "Charles Babbage",
+        "numerical tables",
+        "Ada Lovelace"
+      ],
+      "section_title": "The Difference Engine was built to automate polynomial calculations for numerical tables",
+      "source_index": 4,
+      "source_sha256": "8eea7f48fbda60513d4aabdb2541c3d5f192ba1b70411eeb279ec47cd9615a88",
+      "text": "The Difference Engine was built to automate polynomial calculations for numerical tables. Its public demonstrations helped make Charles Babbage's calculating machines known to scientific circles, including readers of Ada Lovelace's later Notes."
+    },
+    {
+      "char_length": 201,
+      "context_id": "wiki-menabrea-notes#s0",
+      "doc_id": "wiki-menabrea-notes",
+      "doc_title": "Menabrea Article and Notes",
+      "entities": [
+        "Luigi Menabrea",
+        "Ada Lovelace",
+        "Analytical Engine",
+        "Notes",
+        "Turin"
+      ],
+      "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+      "source_index": 5,
+      "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1",
+      "text": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin. Ada Lovelace's translated Notes added examples that later readers used to discuss early programming."
+    }
+  ],
+  "documents": [
+    {
+      "doc_id": "wiki-analytical-engine",
+      "source_index": 0,
+      "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723",
+      "title": "Analytical Engine"
+    },
+    {
+      "doc_id": "wiki-ada-lovelace",
+      "source_index": 1,
+      "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73",
+      "title": "Ada Lovelace"
+    },
+    {
+      "doc_id": "wiki-charles-babbage",
+      "source_index": 2,
+      "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952",
+      "title": "Charles Babbage"
+    },
+    {
+      "doc_id": "wiki-jacquard-loom",
+      "source_index": 3,
+      "source_sha256": "7019712391249c7c4d33fb4b1ad70d0b5b0d5cc3dd8b3a8e0340119b340e03cc",
+      "title": "Jacquard Loom"
+    },
+    {
+      "doc_id": "wiki-difference-engine",
+      "source_index": 4,
+      "source_sha256": "8eea7f48fbda60513d4aabdb2541c3d5f192ba1b70411eeb279ec47cd9615a88",
+      "title": "Difference Engine"
+    },
+    {
+      "doc_id": "wiki-menabrea-notes",
+      "source_index": 5,
+      "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1",
+      "title": "Menabrea Article and Notes"
+    }
+  ],
+  "entities": [
+    {
+      "aliases": [
+        "Analytical Engine"
+      ],
+      "context_frequency": 5,
+      "context_ids": [
+        "wiki-analytical-engine#s0",
+        "wiki-ada-lovelace#s0",
+        "wiki-charles-babbage#s0",
+        "wiki-jacquard-loom#s0",
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-analytical-engine",
+        "wiki-charles-babbage",
+        "wiki-jacquard-loom",
+        "wiki-menabrea-notes"
+      ],
+      "document_frequency": 5,
+      "entity": "Analytical Engine",
+      "entity_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1"
+    },
+    {
+      "aliases": [
+        "Ada Lovelace"
+      ],
+      "context_frequency": 4,
+      "context_ids": [
+        "wiki-analytical-engine#s0",
+        "wiki-ada-lovelace#s0",
+        "wiki-difference-engine#s0",
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-analytical-engine",
+        "wiki-difference-engine",
+        "wiki-menabrea-notes"
+      ],
+      "document_frequency": 4,
+      "entity": "Ada Lovelace",
+      "entity_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc"
+    },
+    {
+      "aliases": [
+        "Charles Babbage"
+      ],
+      "context_frequency": 4,
+      "context_ids": [
+        "wiki-analytical-engine#s0",
+        "wiki-ada-lovelace#s0",
+        "wiki-charles-babbage#s0",
+        "wiki-difference-engine#s0"
+      ],
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-analytical-engine",
+        "wiki-charles-babbage",
+        "wiki-difference-engine"
+      ],
+      "document_frequency": 4,
+      "entity": "Charles Babbage",
+      "entity_id": "660bb42e6086c428225df0695d78bc94cb9d76ef"
+    },
+    {
+      "aliases": [
+        "Difference Engine"
+      ],
+      "context_frequency": 2,
+      "context_ids": [
+        "wiki-charles-babbage#s0",
+        "wiki-difference-engine#s0"
+      ],
+      "doc_ids": [
+        "wiki-charles-babbage",
+        "wiki-difference-engine"
+      ],
+      "document_frequency": 2,
+      "entity": "Difference Engine",
+      "entity_id": "a11abfcaf9f35d6900e19b2555ef5a3e4d7191b2"
+    },
+    {
+      "aliases": [
+        "Jacquard loom"
+      ],
+      "context_frequency": 2,
+      "context_ids": [
+        "wiki-analytical-engine#s0",
+        "wiki-jacquard-loom#s0"
+      ],
+      "doc_ids": [
+        "wiki-analytical-engine",
+        "wiki-jacquard-loom"
+      ],
+      "document_frequency": 2,
+      "entity": "Jacquard loom",
+      "entity_id": "0a199493ff7719ad17320a873d3d0a18e6c5b499"
+    },
+    {
+      "aliases": [
+        "London"
+      ],
+      "context_frequency": 2,
+      "context_ids": [
+        "wiki-analytical-engine#s0",
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_ids": [
+        "wiki-analytical-engine",
+        "wiki-charles-babbage"
+      ],
+      "document_frequency": 2,
+      "entity": "London",
+      "entity_id": "fb501d4f79bb0a94e8806af20f68c59337b3ea96"
+    },
+    {
+      "aliases": [
+        "Luigi Menabrea"
+      ],
+      "context_frequency": 2,
+      "context_ids": [
+        "wiki-ada-lovelace#s0",
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-menabrea-notes"
+      ],
+      "document_frequency": 2,
+      "entity": "Luigi Menabrea",
+      "entity_id": "d289d322e3cee772ac355c14d9818f5402051f89"
+    },
+    {
+      "aliases": [
+        "Notes"
+      ],
+      "context_frequency": 2,
+      "context_ids": [
+        "wiki-ada-lovelace#s0",
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-menabrea-notes"
+      ],
+      "document_frequency": 2,
+      "entity": "Notes",
+      "entity_id": "414747cbcc1ccb209c8c1af8025706c39db094b6"
+    },
+    {
+      "aliases": [
+        "numerical tables"
+      ],
+      "context_frequency": 1,
+      "context_ids": [
+        "wiki-difference-engine#s0"
+      ],
+      "doc_ids": [
+        "wiki-difference-engine"
+      ],
+      "document_frequency": 1,
+      "entity": "numerical tables",
+      "entity_id": "6fdd273d26767a5b2a6ff0a6b470f06b7432ade7"
+    },
+    {
+      "aliases": [
+        "punched cards"
+      ],
+      "context_frequency": 1,
+      "context_ids": [
+        "wiki-jacquard-loom#s0"
+      ],
+      "doc_ids": [
+        "wiki-jacquard-loom"
+      ],
+      "document_frequency": 1,
+      "entity": "punched cards",
+      "entity_id": "a9a9f72c5b5d1bcc5618f7ae09e181c6aa89ef2f"
+    },
+    {
+      "aliases": [
+        "Royal Astronomical Society"
+      ],
+      "context_frequency": 1,
+      "context_ids": [
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_ids": [
+        "wiki-charles-babbage"
+      ],
+      "document_frequency": 1,
+      "entity": "Royal Astronomical Society",
+      "entity_id": "01654afdb03d4fcc77984c63e88d829a40a74441"
+    },
+    {
+      "aliases": [
+        "textile weaving"
+      ],
+      "context_frequency": 1,
+      "context_ids": [
+        "wiki-jacquard-loom#s0"
+      ],
+      "doc_ids": [
+        "wiki-jacquard-loom"
+      ],
+      "document_frequency": 1,
+      "entity": "textile weaving",
+      "entity_id": "a02826e461474deb659a1c2919eebf6bf5af3dbb"
+    },
+    {
+      "aliases": [
+        "Turin"
+      ],
+      "context_frequency": 1,
+      "context_ids": [
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_ids": [
+        "wiki-menabrea-notes"
+      ],
+      "document_frequency": 1,
+      "entity": "Turin",
+      "entity_id": "ca089070b89fbeb65e67a2f25596cef811f1e5e1"
+    }
+  ],
+  "facts": [
+    {
+      "context_count": 3,
+      "context_ids": [
+        "wiki-ada-lovelace#s0",
+        "wiki-analytical-engine#s0",
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 3,
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-analytical-engine",
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London.",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        },
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        },
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin.",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "9afc733027e693ab5535afbbd5ea5b223f80fd83",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "co_occurs_with",
+      "tail": "Analytical Engine",
+      "tail_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "weight": 4.0
+    },
+    {
+      "context_count": 3,
+      "context_ids": [
+        "wiki-ada-lovelace#s0",
+        "wiki-analytical-engine#s0",
+        "wiki-difference-engine#s0"
+      ],
+      "doc_count": 3,
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-analytical-engine",
+        "wiki-difference-engine"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London.",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        },
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        },
+        {
+          "context_id": "wiki-difference-engine#s0",
+          "doc_id": "wiki-difference-engine",
+          "evidence": "Its public demonstrations helped make Charles Babbage's calculating machines known to scientific circles, including readers of Ada Lovelace's later Notes.",
+          "section_title": "The Difference Engine was built to automate polynomial calculations for numerical tables",
+          "source_sha256": "8eea7f48fbda60513d4aabdb2541c3d5f192ba1b70411eeb279ec47cd9615a88"
+        }
+      ],
+      "fact_id": "5c473e44b3b656ebbbfa76250d1860c16c166f3b",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "co_occurs_with",
+      "tail": "Charles Babbage",
+      "tail_id": "660bb42e6086c428225df0695d78bc94cb9d76ef",
+      "weight": 4.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-difference-engine#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-difference-engine"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-difference-engine#s0",
+          "doc_id": "wiki-difference-engine",
+          "evidence": "The Difference Engine was built to automate polynomial calculations for numerical tables.",
+          "section_title": "The Difference Engine was built to automate polynomial calculations for numerical tables",
+          "source_sha256": "8eea7f48fbda60513d4aabdb2541c3d5f192ba1b70411eeb279ec47cd9615a88"
+        }
+      ],
+      "fact_id": "557f040a9e71023a542d909a96f7f87b2e101e4d",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "co_occurs_with",
+      "tail": "Difference Engine",
+      "tail_id": "a11abfcaf9f35d6900e19b2555ef5a3e4d7191b2",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-analytical-engine#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-analytical-engine"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "Ada Lovelace studied the machine and described how punched cards, inspired by the Jacquard loom, could direct symbolic operations.",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        }
+      ],
+      "fact_id": "9edb712551052adf9226077de5b141dbcb6806fd",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "co_occurs_with",
+      "tail": "Jacquard loom",
+      "tail_id": "0a199493ff7719ad17320a873d3d0a18e6c5b499",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-analytical-engine#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-analytical-engine"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London.",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        }
+      ],
+      "fact_id": "49d00dfb993b2def7a5b1c2c225d2521e3d406b3",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "co_occurs_with",
+      "tail": "London",
+      "tail_id": "fb501d4f79bb0a94e8806af20f68c59337b3ea96",
+      "weight": 1.0
+    },
+    {
+      "context_count": 2,
+      "context_ids": [
+        "wiki-ada-lovelace#s0",
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 2,
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        },
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin.",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "51a14443e3e9f7ec18e6de90241ad6351c3c8e2b",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "co_occurs_with",
+      "tail": "Luigi Menabrea",
+      "tail_id": "d289d322e3cee772ac355c14d9818f5402051f89",
+      "weight": 2.5
+    },
+    {
+      "context_count": 2,
+      "context_ids": [
+        "wiki-ada-lovelace#s0",
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 2,
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        },
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Ada Lovelace's translated Notes added examples that later readers used to discuss early programming.",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "59419c4de52848f0270c80036899eaa7362e1276",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "co_occurs_with",
+      "tail": "Notes",
+      "tail_id": "414747cbcc1ccb209c8c1af8025706c39db094b6",
+      "weight": 2.5
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-difference-engine#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-difference-engine"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-difference-engine#s0",
+          "doc_id": "wiki-difference-engine",
+          "evidence": "The Difference Engine was built to automate polynomial calculations for numerical tables.",
+          "section_title": "The Difference Engine was built to automate polynomial calculations for numerical tables",
+          "source_sha256": "8eea7f48fbda60513d4aabdb2541c3d5f192ba1b70411eeb279ec47cd9615a88"
+        }
+      ],
+      "fact_id": "b8f4376b7b6bfa562202a106ed90f3abb196fdcc",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "co_occurs_with",
+      "tail": "numerical tables",
+      "tail_id": "6fdd273d26767a5b2a6ff0a6b470f06b7432ade7",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin.",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "811a7c423596af7b3dc0e80d23650022ec5edc1b",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "co_occurs_with",
+      "tail": "Turin",
+      "tail_id": "ca089070b89fbeb65e67a2f25596cef811f1e5e1",
+      "weight": 1.0
+    },
+    {
+      "context_count": 3,
+      "context_ids": [
+        "wiki-ada-lovelace#s0",
+        "wiki-analytical-engine#s0",
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_count": 3,
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-analytical-engine",
+        "wiki-charles-babbage"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London.",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        },
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        },
+        {
+          "context_id": "wiki-charles-babbage#s0",
+          "doc_id": "wiki-charles-babbage",
+          "evidence": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society.",
+          "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+          "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952"
+        }
+      ],
+      "fact_id": "ea5d0cdff579b05ac37ae2199d5f0a2e74148e2e",
+      "head": "Analytical Engine",
+      "head_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "relation": "co_occurs_with",
+      "tail": "Charles Babbage",
+      "tail_id": "660bb42e6086c428225df0695d78bc94cb9d76ef",
+      "weight": 4.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-charles-babbage"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-charles-babbage#s0",
+          "doc_id": "wiki-charles-babbage",
+          "evidence": "His Difference Engine targeted numerical tables, while the later Analytical Engine sketched a broader programmable machine.",
+          "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+          "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952"
+        }
+      ],
+      "fact_id": "80048277dc64b047f4834525a4257dba4ddca18e",
+      "head": "Analytical Engine",
+      "head_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "relation": "co_occurs_with",
+      "tail": "Difference Engine",
+      "tail_id": "a11abfcaf9f35d6900e19b2555ef5a3e4d7191b2",
+      "weight": 1.0
+    },
+    {
+      "context_count": 2,
+      "context_ids": [
+        "wiki-analytical-engine#s0",
+        "wiki-jacquard-loom#s0"
+      ],
+      "doc_count": 2,
+      "doc_ids": [
+        "wiki-analytical-engine",
+        "wiki-jacquard-loom"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London.",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        },
+        {
+          "context_id": "wiki-jacquard-loom#s0",
+          "doc_id": "wiki-jacquard-loom",
+          "evidence": "The Jacquard loom used punched cards to control textile weaving patterns.",
+          "section_title": "The Jacquard loom used punched cards to control textile weaving patterns",
+          "source_sha256": "7019712391249c7c4d33fb4b1ad70d0b5b0d5cc3dd8b3a8e0340119b340e03cc"
+        }
+      ],
+      "fact_id": "3a3728ae4ee9cad8fded681ee0b7716d28aaa321",
+      "head": "Analytical Engine",
+      "head_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "relation": "co_occurs_with",
+      "tail": "Jacquard loom",
+      "tail_id": "0a199493ff7719ad17320a873d3d0a18e6c5b499",
+      "weight": 2.5
+    },
+    {
+      "context_count": 2,
+      "context_ids": [
+        "wiki-analytical-engine#s0",
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_count": 2,
+      "doc_ids": [
+        "wiki-analytical-engine",
+        "wiki-charles-babbage"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London.",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        },
+        {
+          "context_id": "wiki-charles-babbage#s0",
+          "doc_id": "wiki-charles-babbage",
+          "evidence": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society.",
+          "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+          "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952"
+        }
+      ],
+      "fact_id": "475ffc86f7d36d42c08d747b4427ccf480903bfc",
+      "head": "Analytical Engine",
+      "head_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "relation": "co_occurs_with",
+      "tail": "London",
+      "tail_id": "fb501d4f79bb0a94e8806af20f68c59337b3ea96",
+      "weight": 2.5
+    },
+    {
+      "context_count": 2,
+      "context_ids": [
+        "wiki-ada-lovelace#s0",
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 2,
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        },
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin.",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "179fa7bc119388393921800c953e260af6758fdc",
+      "head": "Analytical Engine",
+      "head_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "relation": "co_occurs_with",
+      "tail": "Luigi Menabrea",
+      "tail_id": "d289d322e3cee772ac355c14d9818f5402051f89",
+      "weight": 2.5
+    },
+    {
+      "context_count": 2,
+      "context_ids": [
+        "wiki-ada-lovelace#s0",
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 2,
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        },
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin.",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "ab73e4f091da1d698f9a07ce655d2f9186f221e7",
+      "head": "Analytical Engine",
+      "head_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "relation": "co_occurs_with",
+      "tail": "Notes",
+      "tail_id": "414747cbcc1ccb209c8c1af8025706c39db094b6",
+      "weight": 2.5
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-jacquard-loom#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-jacquard-loom"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-jacquard-loom#s0",
+          "doc_id": "wiki-jacquard-loom",
+          "evidence": "The Jacquard loom used punched cards to control textile weaving patterns.",
+          "section_title": "The Jacquard loom used punched cards to control textile weaving patterns",
+          "source_sha256": "7019712391249c7c4d33fb4b1ad70d0b5b0d5cc3dd8b3a8e0340119b340e03cc"
+        }
+      ],
+      "fact_id": "3d92e5cc321a669062dfef840f87f2e434f5ad49",
+      "head": "Analytical Engine",
+      "head_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "relation": "co_occurs_with",
+      "tail": "punched cards",
+      "tail_id": "a9a9f72c5b5d1bcc5618f7ae09e181c6aa89ef2f",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-charles-babbage"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-charles-babbage#s0",
+          "doc_id": "wiki-charles-babbage",
+          "evidence": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society.",
+          "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+          "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952"
+        }
+      ],
+      "fact_id": "7efb8046e5885318d862c4245703b4c21102f317",
+      "head": "Analytical Engine",
+      "head_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "relation": "co_occurs_with",
+      "tail": "Royal Astronomical Society",
+      "tail_id": "01654afdb03d4fcc77984c63e88d829a40a74441",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-jacquard-loom#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-jacquard-loom"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-jacquard-loom#s0",
+          "doc_id": "wiki-jacquard-loom",
+          "evidence": "The Jacquard loom used punched cards to control textile weaving patterns.",
+          "section_title": "The Jacquard loom used punched cards to control textile weaving patterns",
+          "source_sha256": "7019712391249c7c4d33fb4b1ad70d0b5b0d5cc3dd8b3a8e0340119b340e03cc"
+        }
+      ],
+      "fact_id": "344e2c36bc24e6663bc91afb6624baeecd9dbc2f",
+      "head": "Analytical Engine",
+      "head_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "relation": "co_occurs_with",
+      "tail": "textile weaving",
+      "tail_id": "a02826e461474deb659a1c2919eebf6bf5af3dbb",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin.",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "5adc4838d4b157922e05b8ac709bf3316d3ac163",
+      "head": "Analytical Engine",
+      "head_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "relation": "co_occurs_with",
+      "tail": "Turin",
+      "tail_id": "ca089070b89fbeb65e67a2f25596cef811f1e5e1",
+      "weight": 1.0
+    },
+    {
+      "context_count": 2,
+      "context_ids": [
+        "wiki-charles-babbage#s0",
+        "wiki-difference-engine#s0"
+      ],
+      "doc_count": 2,
+      "doc_ids": [
+        "wiki-charles-babbage",
+        "wiki-difference-engine"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-charles-babbage#s0",
+          "doc_id": "wiki-charles-babbage",
+          "evidence": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society.",
+          "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+          "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952"
+        },
+        {
+          "context_id": "wiki-difference-engine#s0",
+          "doc_id": "wiki-difference-engine",
+          "evidence": "The Difference Engine was built to automate polynomial calculations for numerical tables.",
+          "section_title": "The Difference Engine was built to automate polynomial calculations for numerical tables",
+          "source_sha256": "8eea7f48fbda60513d4aabdb2541c3d5f192ba1b70411eeb279ec47cd9615a88"
+        }
+      ],
+      "fact_id": "91d67e857e7e06b9e6d893ad3d905355a9d6577d",
+      "head": "Charles Babbage",
+      "head_id": "660bb42e6086c428225df0695d78bc94cb9d76ef",
+      "relation": "co_occurs_with",
+      "tail": "Difference Engine",
+      "tail_id": "a11abfcaf9f35d6900e19b2555ef5a3e4d7191b2",
+      "weight": 2.5
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-analytical-engine#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-analytical-engine"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London.",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        }
+      ],
+      "fact_id": "661ea61d7d096561aed575d1a5f658e105d5867a",
+      "head": "Charles Babbage",
+      "head_id": "660bb42e6086c428225df0695d78bc94cb9d76ef",
+      "relation": "co_occurs_with",
+      "tail": "Jacquard loom",
+      "tail_id": "0a199493ff7719ad17320a873d3d0a18e6c5b499",
+      "weight": 1.0
+    },
+    {
+      "context_count": 2,
+      "context_ids": [
+        "wiki-analytical-engine#s0",
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_count": 2,
+      "doc_ids": [
+        "wiki-analytical-engine",
+        "wiki-charles-babbage"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London.",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        },
+        {
+          "context_id": "wiki-charles-babbage#s0",
+          "doc_id": "wiki-charles-babbage",
+          "evidence": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society.",
+          "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+          "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952"
+        }
+      ],
+      "fact_id": "36fc875c3c8dafb81f451d7c3b45d741a0b92ea7",
+      "head": "Charles Babbage",
+      "head_id": "660bb42e6086c428225df0695d78bc94cb9d76ef",
+      "relation": "co_occurs_with",
+      "tail": "London",
+      "tail_id": "fb501d4f79bb0a94e8806af20f68c59337b3ea96",
+      "weight": 2.5
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-ada-lovelace#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-ada-lovelace"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        }
+      ],
+      "fact_id": "3eeac335df870ca4a688bb63a13d119e615c6582",
+      "head": "Charles Babbage",
+      "head_id": "660bb42e6086c428225df0695d78bc94cb9d76ef",
+      "relation": "co_occurs_with",
+      "tail": "Luigi Menabrea",
+      "tail_id": "d289d322e3cee772ac355c14d9818f5402051f89",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-ada-lovelace#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-ada-lovelace"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        }
+      ],
+      "fact_id": "b6a27d4482f5252e330053a356c32fa08447ccb3",
+      "head": "Charles Babbage",
+      "head_id": "660bb42e6086c428225df0695d78bc94cb9d76ef",
+      "relation": "co_occurs_with",
+      "tail": "Notes",
+      "tail_id": "414747cbcc1ccb209c8c1af8025706c39db094b6",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-difference-engine#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-difference-engine"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-difference-engine#s0",
+          "doc_id": "wiki-difference-engine",
+          "evidence": "The Difference Engine was built to automate polynomial calculations for numerical tables.",
+          "section_title": "The Difference Engine was built to automate polynomial calculations for numerical tables",
+          "source_sha256": "8eea7f48fbda60513d4aabdb2541c3d5f192ba1b70411eeb279ec47cd9615a88"
+        }
+      ],
+      "fact_id": "cf4460d0de3c605473c57a4785a963ac627a8af1",
+      "head": "Charles Babbage",
+      "head_id": "660bb42e6086c428225df0695d78bc94cb9d76ef",
+      "relation": "co_occurs_with",
+      "tail": "numerical tables",
+      "tail_id": "6fdd273d26767a5b2a6ff0a6b470f06b7432ade7",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-charles-babbage"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-charles-babbage#s0",
+          "doc_id": "wiki-charles-babbage",
+          "evidence": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society.",
+          "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+          "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952"
+        }
+      ],
+      "fact_id": "a7b6f97c2ea0bd77ef041057348a87cbaa2b697a",
+      "head": "Charles Babbage",
+      "head_id": "660bb42e6086c428225df0695d78bc94cb9d76ef",
+      "relation": "co_occurs_with",
+      "tail": "Royal Astronomical Society",
+      "tail_id": "01654afdb03d4fcc77984c63e88d829a40a74441",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-charles-babbage"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-charles-babbage#s0",
+          "doc_id": "wiki-charles-babbage",
+          "evidence": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society.",
+          "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+          "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952"
+        }
+      ],
+      "fact_id": "782cef47ad832ba6a51984737cabfd45dc2c6bc4",
+      "head": "Difference Engine",
+      "head_id": "a11abfcaf9f35d6900e19b2555ef5a3e4d7191b2",
+      "relation": "co_occurs_with",
+      "tail": "London",
+      "tail_id": "fb501d4f79bb0a94e8806af20f68c59337b3ea96",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-difference-engine#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-difference-engine"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-difference-engine#s0",
+          "doc_id": "wiki-difference-engine",
+          "evidence": "The Difference Engine was built to automate polynomial calculations for numerical tables.",
+          "section_title": "The Difference Engine was built to automate polynomial calculations for numerical tables",
+          "source_sha256": "8eea7f48fbda60513d4aabdb2541c3d5f192ba1b70411eeb279ec47cd9615a88"
+        }
+      ],
+      "fact_id": "198f302282a3ef3f9eba6d9d06e178f899a76b61",
+      "head": "Difference Engine",
+      "head_id": "a11abfcaf9f35d6900e19b2555ef5a3e4d7191b2",
+      "relation": "co_occurs_with",
+      "tail": "numerical tables",
+      "tail_id": "6fdd273d26767a5b2a6ff0a6b470f06b7432ade7",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-charles-babbage"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-charles-babbage#s0",
+          "doc_id": "wiki-charles-babbage",
+          "evidence": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society.",
+          "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+          "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952"
+        }
+      ],
+      "fact_id": "aac60180f4cca732dec086c79b31c7234b70b86d",
+      "head": "Difference Engine",
+      "head_id": "a11abfcaf9f35d6900e19b2555ef5a3e4d7191b2",
+      "relation": "co_occurs_with",
+      "tail": "Royal Astronomical Society",
+      "tail_id": "01654afdb03d4fcc77984c63e88d829a40a74441",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-analytical-engine#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-analytical-engine"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London.",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        }
+      ],
+      "fact_id": "e658e0e2ee1891bb97378394d408fc93deb1aa5b",
+      "head": "Jacquard loom",
+      "head_id": "0a199493ff7719ad17320a873d3d0a18e6c5b499",
+      "relation": "co_occurs_with",
+      "tail": "London",
+      "tail_id": "fb501d4f79bb0a94e8806af20f68c59337b3ea96",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-jacquard-loom#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-jacquard-loom"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-jacquard-loom#s0",
+          "doc_id": "wiki-jacquard-loom",
+          "evidence": "The Jacquard loom used punched cards to control textile weaving patterns.",
+          "section_title": "The Jacquard loom used punched cards to control textile weaving patterns",
+          "source_sha256": "7019712391249c7c4d33fb4b1ad70d0b5b0d5cc3dd8b3a8e0340119b340e03cc"
+        }
+      ],
+      "fact_id": "db9bacbd3aa3c32beecda809b68e9b9dd098c229",
+      "head": "Jacquard loom",
+      "head_id": "0a199493ff7719ad17320a873d3d0a18e6c5b499",
+      "relation": "co_occurs_with",
+      "tail": "punched cards",
+      "tail_id": "a9a9f72c5b5d1bcc5618f7ae09e181c6aa89ef2f",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-jacquard-loom#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-jacquard-loom"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-jacquard-loom#s0",
+          "doc_id": "wiki-jacquard-loom",
+          "evidence": "The Jacquard loom used punched cards to control textile weaving patterns.",
+          "section_title": "The Jacquard loom used punched cards to control textile weaving patterns",
+          "source_sha256": "7019712391249c7c4d33fb4b1ad70d0b5b0d5cc3dd8b3a8e0340119b340e03cc"
+        }
+      ],
+      "fact_id": "1bb2cdfe22df9a505e11677908f88274e8748abd",
+      "head": "Jacquard loom",
+      "head_id": "0a199493ff7719ad17320a873d3d0a18e6c5b499",
+      "relation": "co_occurs_with",
+      "tail": "textile weaving",
+      "tail_id": "a02826e461474deb659a1c2919eebf6bf5af3dbb",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-charles-babbage"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-charles-babbage#s0",
+          "doc_id": "wiki-charles-babbage",
+          "evidence": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society.",
+          "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+          "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952"
+        }
+      ],
+      "fact_id": "6665790fea8e88bd7a2cf022097a9e64ba03b593",
+      "head": "London",
+      "head_id": "fb501d4f79bb0a94e8806af20f68c59337b3ea96",
+      "relation": "co_occurs_with",
+      "tail": "Royal Astronomical Society",
+      "tail_id": "01654afdb03d4fcc77984c63e88d829a40a74441",
+      "weight": 1.0
+    },
+    {
+      "context_count": 2,
+      "context_ids": [
+        "wiki-ada-lovelace#s0",
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 2,
+      "doc_ids": [
+        "wiki-ada-lovelace",
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        },
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin.",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "cfab87c7ea39634bf721f3f79ae08f763b34d6ca",
+      "head": "Luigi Menabrea",
+      "head_id": "d289d322e3cee772ac355c14d9818f5402051f89",
+      "relation": "co_occurs_with",
+      "tail": "Notes",
+      "tail_id": "414747cbcc1ccb209c8c1af8025706c39db094b6",
+      "weight": 2.5
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin.",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "2ab0376134381dc4303a7a886dc6c2ec87ba6b4d",
+      "head": "Luigi Menabrea",
+      "head_id": "d289d322e3cee772ac355c14d9818f5402051f89",
+      "relation": "co_occurs_with",
+      "tail": "Turin",
+      "tail_id": "ca089070b89fbeb65e67a2f25596cef811f1e5e1",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin.",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "a84e2dfe471a70eb4a0f9551aedddb91940e10f6",
+      "head": "Notes",
+      "head_id": "414747cbcc1ccb209c8c1af8025706c39db094b6",
+      "relation": "co_occurs_with",
+      "tail": "Turin",
+      "tail_id": "ca089070b89fbeb65e67a2f25596cef811f1e5e1",
+      "weight": 1.0
+    },
+    {
+      "context_count": 1,
+      "context_ids": [
+        "wiki-jacquard-loom#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-jacquard-loom"
+      ],
+      "edge_type": "contextual_cooccurrence",
+      "evidence": [
+        {
+          "context_id": "wiki-jacquard-loom#s0",
+          "doc_id": "wiki-jacquard-loom",
+          "evidence": "The Jacquard loom used punched cards to control textile weaving patterns.",
+          "section_title": "The Jacquard loom used punched cards to control textile weaving patterns",
+          "source_sha256": "7019712391249c7c4d33fb4b1ad70d0b5b0d5cc3dd8b3a8e0340119b340e03cc"
+        }
+      ],
+      "fact_id": "26ef88ef7396f35ce222bdf79619992a5ae156fc",
+      "head": "punched cards",
+      "head_id": "a9a9f72c5b5d1bcc5618f7ae09e181c6aa89ef2f",
+      "relation": "co_occurs_with",
+      "tail": "textile weaving",
+      "tail_id": "a02826e461474deb659a1c2919eebf6bf5af3dbb",
+      "weight": 1.0
+    },
+    {
+      "confidence": 0.82,
+      "context_count": 1,
+      "context_ids": [
+        "wiki-ada-lovelace#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-ada-lovelace"
+      ],
+      "edge_type": "typed_contextual_fact",
+      "evidence": [
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "extraction_method": "heuristic",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        }
+      ],
+      "fact_id": "3c813958475350f665b6e8609db6a61f798f7b79",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "expanded_with",
+      "relation_category": "authored_or_translated_by",
+      "tail": "Notes",
+      "tail_id": "414747cbcc1ccb209c8c1af8025706c39db094b6",
+      "weight": 0.82
+    },
+    {
+      "confidence": 0.82,
+      "context_count": 1,
+      "context_ids": [
+        "wiki-ada-lovelace#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-ada-lovelace"
+      ],
+      "edge_type": "typed_contextual_fact",
+      "evidence": [
+        {
+          "context_id": "wiki-ada-lovelace#s0",
+          "doc_id": "wiki-ada-lovelace",
+          "evidence": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes.",
+          "extraction_method": "heuristic",
+          "section_title": "Ada Lovelace translated Luigi Menabrea's article about Charles Babbage's Analytical Engine and expanded it with her own Notes",
+          "source_sha256": "03989f8cce73b06bff33a9fdf6b7e4833d9e5d6f02c9a2fa5459f6c12a9cfb73"
+        }
+      ],
+      "fact_id": "4093b5731ed82c8300f100e68d5a69db976b3ff5",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "translated",
+      "relation_category": "authored_or_translated_by",
+      "tail": "Luigi Menabrea",
+      "tail_id": "d289d322e3cee772ac355c14d9818f5402051f89",
+      "weight": 0.82
+    },
+    {
+      "confidence": 0.82,
+      "context_count": 1,
+      "context_ids": [
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "typed_contextual_fact",
+      "evidence": [
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Ada Lovelace's translated Notes added examples that later readers used to discuss early programming.",
+          "extraction_method": "heuristic",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "ca450cd37bd9eb8c6f7313cb1796a6805479bfd9",
+      "head": "Ada Lovelace",
+      "head_id": "aad9f371852cb999021ddeec0287a3c4a29a05cc",
+      "relation": "translated",
+      "relation_category": "authored_or_translated_by",
+      "tail": "Notes",
+      "tail_id": "414747cbcc1ccb209c8c1af8025706c39db094b6",
+      "weight": 0.82
+    },
+    {
+      "confidence": 0.82,
+      "context_count": 1,
+      "context_ids": [
+        "wiki-analytical-engine#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-analytical-engine"
+      ],
+      "edge_type": "typed_contextual_fact",
+      "evidence": [
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London.",
+          "extraction_method": "heuristic",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        },
+        {
+          "context_id": "wiki-analytical-engine#s0",
+          "doc_id": "wiki-analytical-engine",
+          "evidence": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London.",
+          "extraction_method": "heuristic",
+          "section_title": "The Analytical Engine was a proposed mechanical general-purpose computer designed by Charles Babbage in London",
+          "source_sha256": "7cb784e25ad5d01266e7fefd793a59beabff63af23c0ff38bb4ad21442927723"
+        }
+      ],
+      "fact_id": "4c42379d35104d4f4c00620142323a7f7183ac5f",
+      "head": "Analytical Engine",
+      "head_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "relation": "designed",
+      "relation_category": "created_or_designed_by",
+      "tail": "Charles Babbage",
+      "tail_id": "660bb42e6086c428225df0695d78bc94cb9d76ef",
+      "weight": 0.82
+    },
+    {
+      "confidence": 0.82,
+      "context_count": 1,
+      "context_ids": [
+        "wiki-charles-babbage#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-charles-babbage"
+      ],
+      "edge_type": "typed_contextual_fact",
+      "evidence": [
+        {
+          "context_id": "wiki-charles-babbage#s0",
+          "doc_id": "wiki-charles-babbage",
+          "evidence": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society.",
+          "extraction_method": "heuristic",
+          "section_title": "Charles Babbage was a London mathematician associated with the Royal Astronomical Society",
+          "source_sha256": "483eb837bba925c2939729bd918ef8581d5e23bc44c8037a0db98e459dfe6952"
+        }
+      ],
+      "fact_id": "35bc0feca44bb53437e8055399ec1b3601d138d4",
+      "head": "Charles Babbage",
+      "head_id": "660bb42e6086c428225df0695d78bc94cb9d76ef",
+      "relation": "associated_with",
+      "relation_category": "associated_with",
+      "tail": "Royal Astronomical Society",
+      "tail_id": "01654afdb03d4fcc77984c63e88d829a40a74441",
+      "weight": 0.82
+    },
+    {
+      "confidence": 0.82,
+      "context_count": 1,
+      "context_ids": [
+        "wiki-difference-engine#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-difference-engine"
+      ],
+      "edge_type": "typed_contextual_fact",
+      "evidence": [
+        {
+          "context_id": "wiki-difference-engine#s0",
+          "doc_id": "wiki-difference-engine",
+          "evidence": "The Difference Engine was built to automate polynomial calculations for numerical tables.",
+          "extraction_method": "heuristic",
+          "section_title": "The Difference Engine was built to automate polynomial calculations for numerical tables",
+          "source_sha256": "8eea7f48fbda60513d4aabdb2541c3d5f192ba1b70411eeb279ec47cd9615a88"
+        }
+      ],
+      "fact_id": "1257a3b2a4cb5d85000f150a12cac9b30bb61c43",
+      "head": "Difference Engine",
+      "head_id": "a11abfcaf9f35d6900e19b2555ef5a3e4d7191b2",
+      "relation": "built_to",
+      "relation_category": "used_for",
+      "tail": "numerical tables",
+      "tail_id": "6fdd273d26767a5b2a6ff0a6b470f06b7432ade7",
+      "weight": 0.82
+    },
+    {
+      "confidence": 0.82,
+      "context_count": 1,
+      "context_ids": [
+        "wiki-menabrea-notes#s0"
+      ],
+      "doc_count": 1,
+      "doc_ids": [
+        "wiki-menabrea-notes"
+      ],
+      "edge_type": "typed_contextual_fact",
+      "evidence": [
+        {
+          "context_id": "wiki-menabrea-notes#s0",
+          "doc_id": "wiki-menabrea-notes",
+          "evidence": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin.",
+          "extraction_method": "heuristic",
+          "section_title": "Luigi Menabrea published an account of the Analytical Engine after hearing Babbage lecture in Turin",
+          "source_sha256": "8c28d4d6c0b330b7974716e61887cb9fe7b8fe345b50da9e5d4780a89f23daf1"
+        }
+      ],
+      "fact_id": "ef1eca3f6f9136e4416f876e5ccffcc4f280eb3b",
+      "head": "Luigi Menabrea",
+      "head_id": "d289d322e3cee772ac355c14d9818f5402051f89",
+      "relation": "published",
+      "relation_category": "authored_or_translated_by",
+      "tail": "Analytical Engine",
+      "tail_id": "3d7d7993b9522ade63e9dccf273b3c44f0f174e1",
+      "weight": 0.82
+    }
+  ],
+  "graph_id": "48c487b576743c9c659f3105bda93d9405c0c295",
+  "graph_name": "entity_context_graph",
+  "schema_version": "entity-context-graph-v1",
+  "summary": {
+    "contexts": 6,
+    "cooccurrence_facts": 37,
+    "documents": 6,
+    "entities": 13,
+    "facts": 44,
+    "typed_facts": 7
+  }
+}
